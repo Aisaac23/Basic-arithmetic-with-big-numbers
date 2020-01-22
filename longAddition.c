@@ -45,6 +45,15 @@ char* longAddition( char* summand1,  char* summand2)
 
 	summand1Length = strlen(summand1);
 	summand2Length = strlen(summand2);
+	
+	if( summand1Length == 0 && summand2Length == 0 )
+		return "0";
+	if( summand1Length == 0 )
+		return summand2;
+	if( summand2Length == 0 )
+		return summand1;
+
+
 	resultSize = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;
 	
 	// We need to prepare the space for normalized summands and the result... 

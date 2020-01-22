@@ -45,6 +45,10 @@ char* longMultiplication( char* factor1,  char* factor2)
 	char *result; 
 	unsigned int product = 0, prevCarry = 0, sumCarry = 0, carry = 0;
 	
+
+	if( f1Size == 0 || f2Size == 0 )
+		return "0";
+
 	// We need to prepare the space for normalized summands and the result... 
 	result = calloc( resultSize+1, sizeof(char) );
 

@@ -55,9 +55,14 @@ char *longDivision(char *dividend, char divisor[])
 	dividendSize = strlen(dividend);
 	divisorSize = strlen(divisor);
 	
+	if( divisorSize == 0 )
+		return "NAN";
+	if( dividendSize == 0 )
+		return "0";
+
 	if(divisor[0] == '0')
 		return "NaN";
-	if( dividendSize < divisorSize )
+	if( dividendSize < divisorSize || dividend[0] == '0' )
 		return "0";
 
 	cuotient = calloc( dividendSize+1, sizeof(char) );

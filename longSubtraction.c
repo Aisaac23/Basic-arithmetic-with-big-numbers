@@ -44,6 +44,14 @@ char *longSubtraction(char *minuend, char *subtrahend)
 	subtrahendLength = strlen(subtrahend);
 	resultSize = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;
 	
+	if( minuendLength == 0 && subtrahendLength == 0 )
+		return "0";
+	if( subtrahendLength == 0 )
+		return minuend;
+	if( minuendLength == 0 )
+		return subtrahend;
+
+
 	result = calloc( resultSize+1, sizeof(char) );
 	
 	//we need to verify if subtrahend is greater than minuend in which case the result will be negative
