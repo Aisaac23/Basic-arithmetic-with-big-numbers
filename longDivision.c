@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 /*The program receives as arguments, two unsigned integers, first the dividend and then the divisor. The dividend should alwyas be >= the divisor.
 
 Example:
@@ -12,25 +13,34 @@ NOTE: the coutient will replace the dividend, so you may want to copy it to a di
 */
 
 char *longDivision(char *dividend, char divisor[]);
+char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 
 int main(int argc, char* argv[])
 {
-	if(argc < 3)
+	char *result = NULL, *number1 = NULL, *number2 = NULL;
+
+	if(argc == 3)
+	{
+		number1 = argv[1];
+		result = longDivision(number1, argv[2]);
+	}	
+	else if(argc == 5)
+	{
+		number1 = readBigNumber(argv[1], atoi(argv[2]));
+		number2 = readBigNumber(argv[3], atoi(argv[4]));
+		
+		printf("%s / %s =\n\n", number1, number2);
+		result = longDivision(number1, number2);
+	}
+	else
 	{
 		printf("Thre could be some data missing in: %s\n", argv[0]);
 		exit(EXIT_SUCCESS);
 	}
-
-	char *cuotient, *dividend;
-	dividend = calloc(strlen(argv[1])+1, sizeof(char));
-	strcpy(dividend, argv[1]);
-	cuotient = longDivision(dividend, argv[2]);
 	
-	printf("Reminder: %s, Cuotient: %s\n", dividend, cuotient);
-	
-	//...
-	free(dividend);
-	free(cuotient);
+	printf("Cuotient: %s, Remainder:%s\n", result, number1);
+	if( !strcmp(result, "NAN") )
+		free(result);
 	return EXIT_SUCCESS;
 }
 
@@ -45,6 +55,8 @@ char *longDivision(char *dividend, char divisor[])
 	dividendSize = strlen(dividend);
 	divisorSize = strlen(divisor);
 	
+	if(divisor[0] == '0')
+		return "NaN";
 	if( dividendSize < divisorSize )
 		return "0";
 
@@ -139,4 +151,22 @@ char *longDivision(char *dividend, char divisor[])
 		memmove(cuotient, cuotient+1, dividendSize*sizeof(char)+1 );
 
 	return cuotient;
+}
+
+char* readBigNumber(char *fileName, const unsigned int SLICELENGTH)
+{
+
+	FILE *bigNum = fopen(fileName, "r");
+	char c[2], *primeSlice;
+	unsigned int counter = 0;
+	primeSlice = calloc(SLICELENGTH+1, sizeof(char));
+	
+	while( (counter < SLICELENGTH) && ( ( c[0]=fgetc(bigNum) )!= EOF ) )
+			if( isdigit( c[0] ) )
+				primeSlice[counter++] = c[0];
+
+	primeSlice[SLICELENGTH] = '\0';
+	fclose(bigNum);
+
+	return primeSlice;
 }

@@ -1,26 +1,39 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 /*The program receives as arguments, two unsigned integers
 
 Example:
 
 ./longMultiplication 343456778384378290000000 34434999588887878867487736273762731116372
 */
-int noArguments(int argc, char * argv[], char* version, char* author);
+
 char* longMultiplication( char *factor1,  char *factor2);
+char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 
 int main(int argc, char* argv[])
 {	
-	if(argc < 3)
+	char *result = NULL, *number1 = NULL, *number2 = NULL;
+
+	if(argc == 3)
+		result = longMultiplication(argv[1], argv[2]);	
+	else if(argc == 5)
+	{
+		number1 = readBigNumber(argv[1], atoi(argv[2]));
+		number2 = readBigNumber(argv[3], atoi(argv[4]));
+		printf("%s * %s =\n\n", number1, number2);
+		result = longMultiplication(number1, number2);
+	}
+	else
 	{
 		printf("Thre could be some data missing in: %s\n", argv[0]);
 		exit(EXIT_SUCCESS);
 	}
-
-	char *result;
-	result = longMultiplication(argv[1], argv[2]);
-	printf("\nResult: %s\n\n", result);
+	
+	printf("%s\n", result);
+	free(result);
+	return EXIT_SUCCESS;
 	
 }
 
@@ -85,4 +98,21 @@ char* longMultiplication( char* factor1,  char* factor2)
 		memmove(result, result+1, resultSize*sizeof(char)+1);
 
 	return result;
+}
+
+char* readBigNumber(char *fileName, const unsigned int SLICELENGTH)
+{
+
+	FILE *bigNum = fopen(fileName, "r");
+	char c[2], *primeSlice;
+	unsigned int counter = 0;
+	primeSlice = calloc(SLICELENGTH+1, sizeof(char));
+	
+	while( (counter < SLICELENGTH) && ( ( c[0]=fgetc(bigNum) )!= EOF ) )
+			if( isdigit(c[0]) )
+				primeSlice[counter++] = c[0];
+
+	primeSlice[SLICELENGTH] = '\0';
+	fclose(bigNum);
+	return primeSlice;
 }
