@@ -1,10 +1,11 @@
-/*The program receives as arguments, two unsigned integers, first the minuend and then the subtrahend.*/
+/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file.*/
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "chkops.h"
 
 char* longSubtraction(char minuend[], char subtrahend[]);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
@@ -13,13 +14,20 @@ int main(int argc, char* argv[])
 {
 	char *result = NULL, *number1 = NULL, *number2 = NULL;
 
-	if(argc == 3)
-		result = longSubtraction(argv[1], argv[2]);	
+	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )
+		result = longSubtraction(argv[1], argv[2]);
 	else if(argc == 5)
 	{
+		if( !fileExists( argv[1] ) || !fileExists( argv[3] ) || !isUnsignedInteger(argv[2]) || isUnsignedInteger(argv[4]) )
+			exit(EXIT_FAILURE);
+
 		number1 = readBigNumber(argv[1], atoi(argv[2]));
 		number2 = readBigNumber(argv[3], atoi(argv[4]));
-		printf("%s - %s =\n\n", number1, number2);
+
+		if( !isUnsignedInteger( number1 ) || !isUnsignedInteger( number1 ) )
+			exit(EXIT_FAILURE);
+
+		printf("%s + %s=\n\n", number1, number2);
 		result = longSubtraction(number1, number2);
 	}
 	else
@@ -29,7 +37,9 @@ int main(int argc, char* argv[])
 	}
 	
 	printf("%s\n", result);
-	free(result);
+	if(result)
+		free(result);
+
 	return EXIT_SUCCESS;
 }
 
@@ -40,12 +50,15 @@ char *longSubtraction(char *minuend, char *subtrahend)
 	char *result;
 	bool subtrahendIsShorter = true;
 
+	if( minuend == NULL || subtrahend == NULL )
+		return NULL;
+
 	minuendLength = strlen(minuend); 
 	subtrahendLength = strlen(subtrahend);
 	resultSize = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;
 	
 	if( minuendLength == 0 && subtrahendLength == 0 )
-		return "0";
+		return NULL;
 	if( subtrahendLength == 0 )
 		return minuend;
 	if( minuendLength == 0 )

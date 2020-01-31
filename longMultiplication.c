@@ -2,11 +2,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-/*The program receives as arguments, two unsigned integers
+#include "chkops.h"
+/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file.
 
 Example:
 
 ./longMultiplication 343456778384378290000000 34434999588887878867487736273762731116372
+./longMultiplication bignumber.txt 100 bignumber2.txt 10
 */
 
 char* longMultiplication( char *factor1,  char *factor2);
@@ -16,13 +18,20 @@ int main(int argc, char* argv[])
 {	
 	char *result = NULL, *number1 = NULL, *number2 = NULL;
 
-	if(argc == 3)
-		result = longMultiplication(argv[1], argv[2]);	
+	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )
+		result = longMultiplication(argv[1], argv[2]);
 	else if(argc == 5)
 	{
+		if( !fileExists( argv[1] ) || !fileExists( argv[3] ) || !isUnsignedInteger(argv[2]) || isUnsignedInteger(argv[4]) )
+			exit(EXIT_FAILURE);
+
 		number1 = readBigNumber(argv[1], atoi(argv[2]));
 		number2 = readBigNumber(argv[3], atoi(argv[4]));
-		printf("%s * %s =\n\n", number1, number2);
+
+		if( !isUnsignedInteger( number1 ) || !isUnsignedInteger( number1 ) )
+			exit(EXIT_FAILURE);
+
+		printf("%s * %s=\n\n", number1, number2);
 		result = longMultiplication(number1, number2);
 	}
 	else
@@ -30,15 +39,19 @@ int main(int argc, char* argv[])
 		printf("Thre could be some data missing in: %s\n", argv[0]);
 		exit(EXIT_SUCCESS);
 	}
-	
 	printf("%s\n", result);
-	free(result);
+	if(result)
+		free(result);
+
 	return EXIT_SUCCESS;
 	
 }
 
 char* longMultiplication( char* factor1,  char* factor2)
 {	
+	if( factor1 == NULL || factor2 == NULL )
+		return NULL;
+
 	unsigned long long f1Size = strlen(factor1), f2Size = strlen(factor2);
 	unsigned long long resultSize = f1Size + f2Size;
 	
@@ -47,7 +60,7 @@ char* longMultiplication( char* factor1,  char* factor2)
 	
 
 	if( f1Size == 0 || f2Size == 0 )
-		return "0";
+		return NULL;
 
 	// We need to prepare the space for normalized summands and the result... 
 	result = calloc( resultSize+1, sizeof(char) );
