@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "chkops.h"
+
 /*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file. First the dividend and then the divisor. The dividend should alwyas be >= the divisor otherwise the result will be zero.
 
 Example:
@@ -61,6 +62,7 @@ char *longDivision(char *dividend, char divisor[])
 	bool remainderZero = false;
 	int subtraction, loans;
 	
+
 	//Error handling
 	if( divisor == NULL || dividend == NULL )
 		return NULL;
@@ -71,6 +73,7 @@ char *longDivision(char *dividend, char divisor[])
 	z[0] = '0';
 	z[1] = '\0';
 	
+
 	//Error handling
 	if( divisorSize == 0 || dividendSize == 0 )
 		return NULL;
