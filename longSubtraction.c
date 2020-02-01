@@ -1,10 +1,11 @@
-/*The program receives as arguments, two unsigned integers, first the minuend and then the subtrahend.*/
+/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file.*/
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "chkops.h"
 
 char* longSubtraction(char minuend[], char subtrahend[]);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
@@ -13,23 +14,32 @@ int main(int argc, char* argv[])
 {
 	char *result = NULL, *number1 = NULL, *number2 = NULL;
 
-	if(argc == 3)
-		result = longSubtraction(argv[1], argv[2]);	
-	else if(argc == 5)
+	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )//direct input
+		result = longSubtraction(argv[1], argv[2]);
+	else if(argc == 5)// input from file
 	{
+		if( !fileExists( argv[1] ) || !fileExists( argv[3] ) || !isUnsignedInteger(argv[2]) || isUnsignedInteger(argv[4]) )
+			exit(EXIT_FAILURE);
+
 		number1 = readBigNumber(argv[1], atoi(argv[2]));
 		number2 = readBigNumber(argv[3], atoi(argv[4]));
-		printf("%s - %s =\n\n", number1, number2);
+
+		if( !isUnsignedInteger( number1 ) || !isUnsignedInteger( number1 ) )
+			exit(EXIT_FAILURE);
+
+		printf("%s + %s=\n\n", number1, number2);
 		result = longSubtraction(number1, number2);
 	}
 	else
 	{
-		printf("Thre could be some data missing in: %s\n", argv[0]);
+		printf("Data missing or with wrong format in: %s\n", argv[0]);
 		exit(EXIT_SUCCESS);
 	}
 	
 	printf("%s\n", result);
-	free(result);
+	if(result)
+		free(result);
+
 	return EXIT_SUCCESS;
 }
 
@@ -40,12 +50,16 @@ char *longSubtraction(char *minuend, char *subtrahend)
 	char *result;
 	bool subtrahendIsShorter = true;
 
+	if( minuend == NULL || subtrahend == NULL )
+		return NULL;
+
 	minuendLength = strlen(minuend); 
 	subtrahendLength = strlen(subtrahend);
 	resultSize = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;
 	
+	//Error handling
 	if( minuendLength == 0 && subtrahendLength == 0 )
-		return "0";
+		return NULL;
 	if( subtrahendLength == 0 )
 		return minuend;
 	if( minuendLength == 0 )
@@ -77,8 +91,8 @@ char *longSubtraction(char *minuend, char *subtrahend)
 		{
 			shortest--;
 			if( subtrahendIsShorter )
-			{
-				if( resultSize < subtrahendLength-2 && carry==-1 )
+			{	// if the next number is zero and we have carry == -1 then we set carry to 9.
+				if( resultSize < subtrahendLength-2 && carry==-1 ) 
 					carry = ( minuend[resultSize] == '0') ? 9 : -1;	
 				subtraction = (minuend[resultSize] - '0') - (subtrahend[shortest] - '0') + carry;
 			}
@@ -111,7 +125,7 @@ char *longSubtraction(char *minuend, char *subtrahend)
 
 	}while(resultSize > 0);//resultSize is unsigned so it'd cause a runtime error if it gets to -1
 	
-	//most of the times you'll have spare zeros in the left, so we rotate 
+	//you could have spare zeros in the left, so we rotate 
 	while(result[0] == '0' && strlen(result) > 1)
 		memmove(result, result+1, strlen(result)*sizeof(char)+1);
 
@@ -119,7 +133,7 @@ char *longSubtraction(char *minuend, char *subtrahend)
 	if( !subtrahendIsShorter ) //if the result was negative, we add the - sign.
 	{
 		result = realloc( result, newSize*sizeof(char)+2 );
-		memmove(result+1, result, newSize*sizeof(char)+1);
+		memmove(result+1, result, newSize*sizeof(char)+1 );
 		result[0]='-';	
 	}
 	else //otherwise we just resize it
