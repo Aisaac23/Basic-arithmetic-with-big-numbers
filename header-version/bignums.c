@@ -1,9 +1,6 @@
 #include "bignums.h"
 
-/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file.*/
-
-char* longSubtraction(char minuend[], char subtrahend[]);
-
+//Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the subtraction.
 char *longSubtraction(char *minuend, char *subtrahend)
 {
 	unsigned long long int minuendLength, subtrahendLength, resultSize, shortest, newSize;
@@ -103,6 +100,7 @@ char *longSubtraction(char *minuend, char *subtrahend)
 	return result;
 }
 
+//Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the multiplication.
 char* longMultiplication( char* factor1,  char* factor2)
 {	
 	if( factor1 == NULL || factor2 == NULL )
@@ -175,6 +173,7 @@ char* longMultiplication( char* factor1,  char* factor2)
 	return result;
 }
 
+//Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the division.
 char *longDivision(char *dividend, char divisor[])
 {
 	//With this one I reused the longSubtraction's function code and made some modifications.  
@@ -296,6 +295,7 @@ char *longDivision(char *dividend, char divisor[])
 	return cuotient;
 }
 
+//Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the addition.
 char* longAddition( char* summand1,  char* summand2)
 {
 	unsigned long long summand1Length, summand2Length, resultSize, shortest, carry = 0, newSize;
@@ -367,12 +367,17 @@ char* longAddition( char* summand1,  char* summand2)
 	return result;
 }
 
+/*Receives as arguments, the name of an existing file and an integer with the amount of digits to extract from the file. It returns a string with all the digits that could be read from the file until "SLICELENGTH" or EOF*/
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH)
 {
-
+	
 	FILE *bigNum = fopen(fileName, "r");
 	char c[2], *primeSlice;
 	unsigned int counter = 0;
+
+	if(bigNum == NULL)
+		return NULL;
+
 	primeSlice = calloc(SLICELENGTH+1, sizeof(char));
 	
 	while( (counter < SLICELENGTH) && ( ( c[0]=fgetc(bigNum) )!= EOF ) )
@@ -384,3 +389,110 @@ char* readBigNumber(char *fileName, const unsigned int SLICELENGTH)
 
 	return primeSlice;
 }
+
+//Recieves an string composed only by digits and increments the number that represents in one. It can handle overflow (e.g. 999+1)
+char *increment(char* numberPlusPlus)
+{
+	unsigned long long index, len;
+	bool added = false;
+	char *result; 
+	if(numberPlusPlus != NULL)
+	{
+		index = len = strlen(numberPlusPlus);
+		for(int i = 0; i < len; i++)
+			if(!isdigit(numberPlusPlus[i]))
+				return numberPlusPlus;
+		if(len == 0)
+			return numberPlusPlus;	
+		
+		result = calloc(len+1, sizeof(char));
+		strcpy(result, numberPlusPlus);
+		result[len] = '\0';
+		do
+		{
+			index--;
+			if(result[index] < '9')
+			{
+				result[index]++;
+				added = true;
+			}
+			else if( index > 0)
+				result[index] = '0';
+
+		}while( index > 0 && !added );
+		
+		if(!added)
+		{
+			result = realloc( result, len+2 );
+			memmove(result+1, result, len+1);
+			result[0] = '1';
+		}
+	}
+
+	return result; 
+}
+
+//Recieves an string composed only by digits and decrements the number that represents in one. It won't go lower than zero.
+void decrement(char* numberPlusPlus)
+{
+	if(numberPlusPlus != NULL)
+	{
+		unsigned long long index, len;
+		bool sub = false;
+		
+		index = len = strlen(numberPlusPlus);
+		for(int i = 0; i < len; i++)
+			if(!isdigit(numberPlusPlus[i]))
+				return;
+		if(len == 0)
+			return;
+		do
+		{
+			index--;
+			if(numberPlusPlus[index] > '0')
+			{
+				numberPlusPlus[index]--;
+				sub = true;
+			}
+			else if( index > 0)
+				numberPlusPlus[index] = '9';
+
+		}while( index > 0 && !sub );
+	}
+	return; 
+}
+
+/*It allows you to divide a number (as string) into equally sized groups (e.g. 19,000,000,000,000). It receives the string to be formated, the size of each group and the char that will serve as separator. Note: to use the new line char, you need to pass 10 instead of \n. */
+char* formatNumber(char *n, int slice, char separator)
+{
+	if(n == NULL || slice == 0 || separator > 127)
+		return n;
+
+	char *newNumber, sep[2];
+	unsigned long long nLength = strlen(n);
+	if(nLength > slice)
+	{
+		unsigned long long index, groups, newLength, skip;
+		
+		newLength = nLength%slice == 0 ? nLength + nLength/slice - 1 : nLength + nLength/slice;
+		groups = nLength%slice == 0 ? nLength/slice-1: nLength/slice;
+		skip = nLength%slice == 0 ? slice: nLength%slice;
+		index = 0;
+
+		newNumber = calloc( newLength+1, sizeof(char) );
+
+		strncat( newNumber, n, skip*sizeof(char) );
+		sep[0] = separator;
+		sep[1] = '\0';
+		while( index < groups )
+		{
+			strcat( newNumber, sep);
+			strncat( newNumber, n+skip+index*slice, slice*sizeof(char) );
+			index++;
+		}
+
+		return newNumber;
+	}	
+	return n;
+}
+

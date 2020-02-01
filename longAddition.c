@@ -20,7 +20,6 @@ int main(int argc, char* argv[])
 {	
 	char *result = NULL, *number1 = NULL, *number2 = NULL;
 
-
 	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )//direct input
 		result = longAddition(argv[1], argv[2]);
 	else if(argc == 5)//input from file
