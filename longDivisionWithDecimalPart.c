@@ -16,7 +16,8 @@ NOTE: the cuotient will replace the dividend, so you may want to copy its value 
 */
 
 char *longDivision(char *dividend, char divisor[]);
-char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
+char *readBigNumber(char *fileName, const unsigned int SLICELENGTH);
+char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision);
 
 int main(int argc, char* argv[])
 {
@@ -25,8 +26,8 @@ int main(int argc, char* argv[])
 	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )
 	{
 		number1 = argv[1];
-		result = longDivision(number1, argv[2]);
-	}	
+		result = longDivisionWithDecimalPart(number1, argv[2], 2);
+	}
 	else if(argc == 5)
 	{
 		if( !fileExists( argv[1] ) || !fileExists( argv[3] ) || !isUnsignedInteger(argv[2]) || isUnsignedInteger(argv[4]) )
@@ -53,6 +54,51 @@ int main(int argc, char* argv[])
 
 	return EXIT_SUCCESS;
 }
+
+char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision)
+{
+	unsigned long long dividendLength;
+	char *localDividend, *result;
+	bool remainderZero = false;
+	
+	dividendLength = strlen(dividend);
+	localDividend = calloc(dividendLength + precision + 1, sizeof(char) );
+	result = calloc(dividendLength + precision + 1, sizeof(char) );
+	result[0] = '\0'; 
+	localDividend[dividendLength + precision] = '\0';
+
+	strcpy(localDividend, dividend);
+	for(int decimals = 0; decimals <= precision && !remainderZero; decimals++)
+	{
+		char *temp;
+		temp = longDivision(localDividend, divisor);
+		strcat(result, temp);
+		if( strcmp(localDividend, "0") != 0)
+		{
+			strcat(localDividend, "0");
+			if( strchr(result, '.') == NULL)
+				strcat(result, ".");
+		}
+		else
+			remainderZero = true;
+	}
+
+	if( strchr(result, '.') == NULL )
+	{
+		strcat(result, ".0");
+		memmove(dividend, localDividend, strlen(localDividend)+1);
+	}
+	else if( strcmp(localDividend, "0") != 0 )
+	{
+		/*Pending part: the program is capable of calculating the cuotient with decimal part but the reminder is partially wrong.*/
+		memmove(dividend, localDividend, strlen(localDividend)+1);;
+	}
+	else
+		memmove(dividend, localDividend, strlen(localDividend)+1);
+
+	return result;
+}
+
 
 char *longDivision(char *dividend, char divisor[])
 {

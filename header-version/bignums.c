@@ -496,3 +496,46 @@ char* formatNumber(char *n, int slice, char separator)
 	return n;
 }
 
+char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision)
+{
+	unsigned long long dividendLength;
+	char *localDividend, *result;
+	bool remainderZero = false;
+	
+	dividendLength = strlen(dividend);
+	localDividend = calloc(dividendLength + precision + 1, sizeof(char) );
+	result = calloc(dividendLength + precision + 1, sizeof(char) );
+	result[0] = '\0'; 
+	localDividend[dividendLength + precision] = '\0';
+
+	strcpy(localDividend, dividend);
+	for(int decimals = 0; decimals <= precision && !remainderZero; decimals++)
+	{
+		char *temp;
+		temp = longDivision(localDividend, divisor);
+		strcat(result, temp);
+		if( strcmp(localDividend, "0") != 0)
+		{
+			strcat(localDividend, "0");
+			if( strchr(result, '.') == NULL)
+				strcat(result, ".");
+		}
+		else
+			remainderZero = true;
+	}
+
+	if( strchr(result, '.') == NULL )
+	{
+		strcat(result, ".0");
+		memmove(dividend, localDividend, strlen(localDividend)+1);
+	}
+	else if( strcmp(localDividend, "0") != 0 )
+	{
+		/*Pending part: the program is capable of calculating the cuotient with decimal part but the reminder is partially wrong.*/
+		memmove(dividend, localDividend, strlen(localDividend)+1);;
+	}
+	else
+		memmove(dividend, localDividend, strlen(localDividend)+1);
+
+	return result;
+}
