@@ -16,5 +16,6 @@ char *increment(char* numberPlusPlus);
 void decrement(char* numberPlusPlus);
 char *formatNumber(char *n, int slice, char separator);
 char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision);
+int compareUnsignedIntegers(char* n1, char *n2);
 
 #endif

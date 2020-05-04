@@ -53,7 +53,7 @@ char* longAddition( char* summand1,  char* summand2)
 {
 	unsigned long long summand1Length, summand2Length, resultSize, shortest, carry = 0, newSize;
 	char *result; 
-	unsigned int sum = 0;
+	unsigned int sum = 0;//biggest number for this variable will be 18.
 	bool summand1IsShorter;	
 	
 	//Error handling

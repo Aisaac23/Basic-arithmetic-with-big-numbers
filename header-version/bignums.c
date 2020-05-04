@@ -416,7 +416,7 @@ char *increment(char* numberPlusPlus)
 				result[index]++;
 				added = true;
 			}
-			else if( index > 0)
+			else if( index >= 0)
 				result[index] = '0';
 
 		}while( index > 0 && !added );
@@ -538,4 +538,24 @@ char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int p
 		memmove(dividend, localDividend, strlen(localDividend)+1);
 
 	return result;
+}
+
+int compareUnsignedIntegers(char* n1, char *n2)
+{
+	int n1Len, n2Len;
+	n1Len = strlen(n1);
+	n2Len = strlen(n2);
+	
+	if(n1Len < n2Len)
+		return -1;
+	if(n1Len > n2Len)
+		return 1;
+	if( strcmp(n1, n2) == 0 )
+		return 0;
+	for( unsigned long long index = 0; index < n1Len; index++)
+		if( n1[index] < n2[index] )
+			return -1;
+		else if( n1[index] > n2[index] )
+			return 1;
+	return -2;
 }
