@@ -15,7 +15,7 @@ Example:
 NOTE: the cuotient will replace the dividend, so you may want to copy its value to a different location.
 */
 
-char *longDivision(char *dividend, char divisor[]);
+char *longDivisionWithReminder(char *dividend, char divisor[]);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 int compareUnsignedIntegers(char* n1, char *n2);
 char *increment(char* numberPlusPlus);
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )
 	{
 		number1 = argv[1];
-		result = longDivision(number1, argv[2]);
+		result = longDivisionWithReminder(number1, argv[2]);
 	}	
 	else if(argc == 5)
 	{
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 			exit(EXIT_FAILURE);
 
 		printf("%s / %s=\n\n", number1, number2);
-		result = longDivision(number1, number2);
+		result = longDivisionWithReminder(number1, number2);
 	}
 	else
 	{
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
-char *longDivision(char *dividend, char divisor[])
+char *longDivisionWithReminder(char *dividend, char divisor[])
 {
 	//Error handling
 	if( divisor == NULL || dividend == NULL )
@@ -72,7 +72,7 @@ char *longDivision(char *dividend, char divisor[])
 	z[0] = '0';
 	z[1] = '\0';
 	
-	//Error handling
+//Error handling
 	if( divisorLength == 0 || dividendLength == 0 )
 		return NULL;
 
@@ -119,7 +119,7 @@ char *longDivision(char *dividend, char divisor[])
 
 			cuotient = longAddition(cuotient, tensMultiply);
 			newDividend = longSubtraction( newDividend, newDivisor );
-
+			//printf("%s\n", newDividend);
 		}
 		else
 		{
@@ -127,8 +127,13 @@ char *longDivision(char *dividend, char divisor[])
 			newDividend = longSubtraction( newDividend, divisor );
 		}
 	}
-
-	free(newDividend);
+	strcpy(dividend, newDividend);
+	
+	//you could have spare zeros in the left, so we rotate
+	while(dividend[0] == '0' && strlen(dividend) > 1)
+		memmove(dividend, dividend+1, dividendLength*sizeof(char)+1 );
+	while(cuotient[0] == '0' && strlen(cuotient) > 1)
+		memmove(cuotient, cuotient+1, dividendLength*sizeof(char)+1 );
 
 	return cuotient;
 }

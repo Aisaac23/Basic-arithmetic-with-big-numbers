@@ -15,7 +15,7 @@ Example:
 NOTE: the cuotient will replace the dividend, so you may want to copy its value to a different location.
 */
 
-char *longDivision(char *dividend, char divisor[]);
+char *longModule(char *dividend, char divisor[]);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 int compareUnsignedIntegers(char* n1, char *n2);
 char *increment(char* numberPlusPlus);
@@ -51,14 +51,14 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 	
-	printf("Cuotient: %s\n", result);
+	printf("Module: %s\n", result);
 	if( result != NULL )
 		free(result);
 
 	return EXIT_SUCCESS;
 }
 
-char *longDivision(char *dividend, char divisor[])
+char *longModule(char *dividend, char divisor[])
 {
 	//Error handling
 	if( divisor == NULL || dividend == NULL )
@@ -66,7 +66,7 @@ char *longDivision(char *dividend, char divisor[])
 	
 	//With this one I reused the longSubtraction's function code and made some modifications.  
 	const unsigned long long dividendLength = strlen(dividend), divisorLength = strlen(divisor);
-	char *cuotient, *z, *newDividend;
+	char *z, *newDividend;
 
 	z = calloc(2, sizeof(char));
 	z[0] = '0';
@@ -85,13 +85,7 @@ char *longDivision(char *dividend, char divisor[])
 		if( compareUnsignedIntegers(dividend, divisor) == -1 )
 			return z;
 
-	cuotient = calloc( dividendLength+1, sizeof(char) );//divisor min value (aside from zero) is 1, so cuotient'd be the same length as dividend.
 	newDividend = calloc( dividendLength+1, sizeof(char) ); // we need this one to change the value recieved as argument in dividend
-	
-	
-	
-	cuotient[0] = '0';
-	cuotient[1] = '\0';
 
 	strcpy(newDividend, dividend);
 	
@@ -117,20 +111,16 @@ char *longDivision(char *dividend, char divisor[])
 				strcat(tensMultiply, "0");
 			}
 
-			cuotient = longAddition(cuotient, tensMultiply);
 			newDividend = longSubtraction( newDividend, newDivisor );
 
 		}
 		else
 		{
-			cuotient = increment(cuotient);
 			newDividend = longSubtraction( newDividend, divisor );
 		}
 	}
 
-	free(newDividend);
-
-	return cuotient;
+	return newDividend;
 }
 
 int compareUnsignedIntegers(char* n1, char *n2)

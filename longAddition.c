@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
 char* longAddition( char* summand1,  char* summand2)
 {
-	unsigned long long summand1Length, summand2Length, resultSize, shortest, carry = 0, newSize;
+	unsigned long long summand1Length, summand2Length, resultLength, shortest, carry = 0;
 	char *result; 
 	unsigned int sum = 0;//biggest number for this variable will be 18.
 	bool summand1IsShorter;	
@@ -71,51 +71,47 @@ char* longAddition( char* summand1,  char* summand2)
 		return summand1;
 
 
-	resultSize = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;
+	resultLength = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;//99+9=108 (max, one more digit)
 	
-	result = calloc( resultSize+1, sizeof(char) );
-	for(unsigned long long i = 0; i<resultSize; i++)
+	result = calloc( resultLength, sizeof(char) );
+	for(unsigned long long i = 0; i<resultLength; i++)
 			result[i] = '0';
-	result[resultSize] = '\0';
+	result[resultLength] = '\0';
 	
-	//Picking the shortest number in length of characters
+	//Picking the shortest length
 	shortest = (summand1Length <= summand2Length) ? summand1Length : summand2Length;
+
 	summand1IsShorter = (summand1Length <= summand2Length) ? true : false;
+
 	do
 	{
-		resultSize--;
+		resultLength--;
 		if(shortest > 0)
 		{
 			shortest--;
 			if( summand1IsShorter )
-				sum = (summand1[shortest]-'0') + (summand2[resultSize-1]-'0');
+				sum = (summand1[shortest]-'0') + (summand2[resultLength-1]-'0');
 			else
-				sum = (summand1[resultSize-1]-'0') + (summand2[shortest]-'0');
+				sum = (summand1[resultLength-1]-'0') + (summand2[shortest]-'0');
 		}
-		else if ( resultSize >= 1 )// When one of the summands was added but there are digits left tu add in the other one.
+		else if ( resultLength >= 1 )// When shortest summand was added but there are digits left to add in the other one.
 		{
 			if( summand1IsShorter )
-				sum = (summand2[resultSize-1]-'0');
+				sum = (summand2[resultLength-1]-'0');
 			else
-				sum = (summand1[resultSize-1]-'0');
+				sum = (summand1[resultLength-1]-'0');
 		}
-		else
+		else // When shortest and resultLength are ZERO, sum should be zero as well.
 			sum = 0;
 		
 		sum+=carry;
 		carry = (sum > 9) ? sum/10 : 0;
 		sum = (sum > 9) ? sum%10 : sum;
-		result[resultSize] = (char)( sum + '0' );
+		
+		// 
+		result[resultLength] = (char)( sum + '0' );
 
-	}while( resultSize > 0 );
-
-	//you could have a spare zero in the left, so we rotate
-	if(result[0] == '0' && strlen(result) > 1)
-		memmove(result, result+1, strlen(result)*sizeof(char) );
-	
-	//Finally we resize the result to get only the useful numbers.
-	newSize = strlen(result);
-	result = realloc(result, newSize);
+	}while( resultLength > 0 );
 	
 	return result;
 }

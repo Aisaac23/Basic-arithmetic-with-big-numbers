@@ -15,7 +15,9 @@ char *readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 char *increment(char* numberPlusPlus);
 void decrement(char* numberPlusPlus);
 char *formatNumber(char *n, int slice, char separator);
-char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision);
+char *longDivisionFloatingPointResult(char *dividend, char divisor[], unsigned int precision);
+char *longDivisionWithReminder(char *dividend, char divisor[]);
+char *longModule(char *dividend, char divisor[]);
 int compareUnsignedIntegers(char* n1, char *n2);
 
 #endif

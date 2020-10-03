@@ -17,13 +17,13 @@ Example:
 NOTE: the cuotient will replace the dividend, so you may want to copy its value to a different location.
 */
 
-char *longDivision(char *dividend, char divisor[]);
+char *longDivisionWithReminder(char *dividend, char divisor[]);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 int compareUnsignedIntegers(char* n1, char *n2);
 char *increment(char* numberPlusPlus);
 char *longSubtraction(char *minuend, char *subtrahend);
 char* longAddition( char* summand1,  char* summand2);
-char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision);
+char *longDivisionFloatingPointResult(char *dividend, char divisor[], unsigned int precision);
 
 int main(int argc, char* argv[])
 {
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	if( argc == 3 && isUnsignedInteger(argv[1]) && isUnsignedInteger(argv[2]) )
 	{
 		number1 = argv[1];
-		result = longDivisionWithDecimalPart(number1, argv[2], 7);
+		result = longDivisionFloatingPointResult(number1, argv[2], 700000);
 	}
 	else if(argc == 5)
 	{
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 			exit(EXIT_FAILURE);
 
 		printf("%s / %s=\n\n", number1, number2);
-		result = longDivision(number1, number2);
+		result = longDivisionWithReminder(number1, number2);
 	}
 	else
 	{
@@ -54,18 +54,17 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 	
-	printf("Cuotient: %s, Remainder:%s\n", result, number1);
+	printf("Cuotient: %s\n", result);
 	if( result != NULL )
 		free(result);
 
 	return EXIT_SUCCESS;
 }
 
-char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int precision)
+char *longDivisionFloatingPointResult(char *dividend, char divisor[], unsigned int precision)
 {
 	unsigned long long dividendLength;
 	char *localDividend, *result;
-	bool remainderZero = false;
 	
 	dividendLength = strlen(dividend);
 
@@ -77,10 +76,10 @@ char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int p
 
 	strcpy(localDividend, dividend);
 	char *temp;
-	temp = longDivision(localDividend, divisor);
+	temp = longDivisionWithReminder(localDividend, divisor);
 
 	if( strcmp(localDividend, "0") != 0 )
-		for(unsigned int decimals = 0; decimals <= precision && !remainderZero; decimals++)
+		for(unsigned int decimals = 0; decimals <= precision; decimals++)
 		{
 			strcat(result, temp);
 			if( strchr(result, '.') == NULL)
@@ -89,48 +88,18 @@ char *longDivisionWithDecimalPart(char *dividend, char divisor[], unsigned int p
 			if(decimals < precision)
 				strcat(localDividend, "0");
 			
-			temp = longDivision(localDividend, divisor);
-
-			if( strcmp(localDividend, "0") == 0 )
-				remainderZero = true;
+			temp = longDivisionWithReminder(localDividend, divisor);
 		}
 	else
 		strcpy(result, temp);
 
 	if( strchr(result, '.') == NULL )
-	{
 		strcat(result, ".0");
-		memmove(dividend, localDividend, strlen(localDividend)+1);
-	}
-	else if( strcmp(localDividend, "0") != 0 )
-	{
-
-		int ldl = strlen(localDividend);
-		if( ldl < precision )
-		{
-			memmove(localDividend+precision-ldl+2, localDividend, ldl+1);
-			localDividend[0] = '0';
-			localDividend[1] = '.';
-
-			for(int index = 2; index < precision-ldl+2; index++)
-				localDividend[index] = '0';
-		}
-		else
-		{
-			memmove(localDividend+2, localDividend, ldl+1);
-			localDividend[0] = '0';
-			localDividend[1] = '.';
-		}
-		strcpy(dividend, localDividend);
-
-	}
-	else
-		memmove(dividend, localDividend, strlen(localDividend)+1);
 
 	return result;
 }
 
-char *longDivision(char *dividend, char divisor[])
+char *longDivisionWithReminder(char *dividend, char divisor[])
 {
 	//Error handling
 	if( divisor == NULL || dividend == NULL )
@@ -144,7 +113,7 @@ char *longDivision(char *dividend, char divisor[])
 	z[0] = '0';
 	z[1] = '\0';
 	
-	//Error handling
+//Error handling
 	if( divisorLength == 0 || dividendLength == 0 )
 		return NULL;
 

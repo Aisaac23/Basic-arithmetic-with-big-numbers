@@ -45,17 +45,19 @@ int main(int argc, char* argv[])
 
 char *longSubtraction(char *minuend, char *subtrahend)
 {
-	unsigned long long int minuendLength, subtrahendLength, resultSize, shortest, newSize;
+	/*Subtraction parts: 	9878-> minuend
+				  98-> subtrahend*/
+	unsigned long long int minuendLength, subtrahendLength, resultLength, shortest, operation_index;
 	int subtraction, carry = 0;
 	char *result;
-	bool subtrahendIsShorter = true;
+	bool minuendIsLower = true;
 
 	if( minuend == NULL || subtrahend == NULL )
 		return NULL;
 
 	minuendLength = strlen(minuend); 
 	subtrahendLength = strlen(subtrahend);
-	resultSize = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;
+	resultLength = (minuendLength >= subtrahendLength) ? minuendLength+1 : subtrahendLength+1;// 0 - 100 = [-]100
 	
 	//Error handling
 	if( minuendLength == 0 && subtrahendLength == 0 )
@@ -66,78 +68,77 @@ char *longSubtraction(char *minuend, char *subtrahend)
 		return subtrahend;
 
 
-	result = calloc( resultSize+1, sizeof(char) );
+	result = calloc( resultLength+1, sizeof(char) );// plus one: '\0'
 	
 	//we need to verify if subtrahend is greater than minuend in which case the result will be negative
-	subtrahendIsShorter = (subtrahendLength <= minuendLength) ? true : false;// If it's greater in length, for sure it will be greater
+	minuendIsLower = (minuendLength < subtrahendLength) ? true : false;// If it's greater in length, for sure it will be greater
+
 	if( minuendLength == subtrahendLength )//if they are equal in length we need to compare its digits
 	{
-		for(int compIndex = 0; compIndex<resultSize && subtrahendIsShorter; compIndex++)
+		for(int compIndex = 0; compIndex<resultLength && !minuendIsLower; compIndex++)
 			if( minuend[compIndex] < subtrahend[compIndex] )
-				subtrahendIsShorter = false;
+				minuendIsLower = true;
 			else if( minuend[compIndex] > subtrahend[compIndex] )
-				compIndex = resultSize;
+				compIndex = resultLength;
 	}
 
-	for(unsigned long long int i = 0; i<resultSize; i++)
+	for(unsigned long long int i = 0; i<resultLength; i++)
 			result[i] = '0';
-	result[resultSize] = '\0';
+	result[resultLength] = '\0';
 	
 	shortest = (subtrahendLength <= minuendLength) ? subtrahendLength : minuendLength; // get the shortest out of both
+	operation_index = resultLength -1;// 
 	do
 	{
-		resultSize--;
+		operation_index--;
 		if(shortest > 0)
 		{
 			shortest--;
-			if( subtrahendIsShorter )
+			if( minuendIsLower )
 			{	// if the next number is zero and we have carry == -1 then we set carry to 9.
-				if( resultSize < subtrahendLength-2 && carry==-1 ) 
-					carry = ( minuend[resultSize] == '0') ? 9 : -1;	
-				subtraction = (minuend[resultSize] - '0') - (subtrahend[shortest] - '0') + carry;
+				if( operation_index <= minuendLength -2 && carry==-1 ) // subtrahend-2 -> evaluate from the penultimate digit.
+					carry = ( subtrahend[operation_index] == '0' ) ? 9 : -1;	
+				subtraction = ( subtrahend[operation_index] - '0') - (minuend[shortest] - '0' ) + carry;
 			}
 			else
 			{
-				if( resultSize < strlen(minuend)-2 && carry==-1 )
-					carry = ( subtrahend[resultSize] == '0') ? 9 : -1;	
-				subtraction = (subtrahend[resultSize] - '0') - (minuend[shortest] - '0') + carry;
+				if( operation_index <= subtrahendLength -2 && carry==-1 )// subtrahend-2 -> evaluate from the penultimate digit.
+					carry = ( minuend[operation_index] == '0') ? 9 : -1;	
+				subtraction = ( minuend[operation_index] - '0') - ( subtrahend[shortest] - '0' ) + carry;
 			}
-			
+			printf("****%i, carry: %i\n", subtraction, carry);
 		}
-		else if ( resultSize >= 0 )//This is used when one of the numbers is has greater length than the other.
+		else if ( operation_index >= 0 )//This is used when one of the numbers has greater length than the other.
 		{
-			if( subtrahendIsShorter )
-				subtraction = (minuend[resultSize] - '0') + carry;
+			if( minuendIsLower )
+				subtraction = (subtrahend[operation_index] - '0') + carry;
 			else
-				subtraction = (subtrahend[resultSize]-'0') + carry;
+				subtraction = (minuend[operation_index]-'0') + carry;
 		}
 		
-		if( subtraction < 0 || carry == 9 )//if the result was negative or the carry had to be 9 we set carry to -1 for the next digit
+		if( subtraction < 0 || carry == 9 )//if the result was negative or the carry had to be 9, then we set carry to -1 for the next digit
 		{
-			if( subtraction < 0 )
+			if( subtraction < 0)
 				subtraction += 10;
 			carry = -1;
 		}
 		else
 			carry = 0;		
 	
-		result[ resultSize ] = (char)( subtraction + '0' ) ;
+		result[ operation_index+1 ] = (char)( subtraction + '0' ) ;
 
-	}while(resultSize > 0);//resultSize is unsigned so it'd cause a runtime error if it gets to -1
+	}while(operation_index > 0);//operation_index is unsigned so it'd cause a runtime error if it gets to -1
 	
-	//you could have spare zeros in the left, so we rotate 
-	while(result[0] == '0' && strlen(result) > 1)
-		memmove(result, result+1, strlen(result)*sizeof(char)+1);
-
-	newSize = strlen(result);
-	if( !subtrahendIsShorter ) //if the result was negative, we add the - sign.
+	printf("....%s\n", result);
+	if( minuendIsLower ) //if the result was negative, we add the - sign.
 	{
-		result = realloc( result, newSize*sizeof(char)+2 );
-		memmove(result+1, result, newSize*sizeof(char)+1 );
-		result[0]='-';	
+		operation_index = strlen(result);
+		int zeros = 0;
+		for(unsigned long long int i = 0; i<operation_index && result[i] == '0'; i++)
+			if(result[i] == '0')
+				zeros++;
+		result[zeros-1]='-';	
 	}
-	else //otherwise we just resize it
-		result = realloc( result, newSize*sizeof(char)+1 );
 
 	return result;
 }

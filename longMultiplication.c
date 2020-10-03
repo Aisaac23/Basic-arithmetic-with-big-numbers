@@ -50,6 +50,7 @@ int main(int argc, char* argv[])
 
 char* longMultiplication( char* factor1,  char* factor2)
 {	
+	//Error handling
 	if( factor1 == NULL || factor2 == NULL )
 		return NULL;
 
@@ -112,10 +113,6 @@ char* longMultiplication( char* factor1,  char* factor2)
 		longest = f1Size >= f2Size ? f1Size : f2Size ;
 
 	}while( shortest >= 1 );
-
-	//you could have spare zeros in the left, so we rotate
-	while(result[0] == '0' && strlen(result) > 1)
-		memmove(result, result+1, resultSize*sizeof(char)+1);
 
 	return result;
 }
