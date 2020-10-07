@@ -1,3 +1,38 @@
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@Aisaac23 
+Learn Git and GitHub without any code!
+Using the Hello World guide, you’ll start a branch, write comments, and open a pull request.
+
+
+Aisaac23
+/
+Basic-arithmetic-with-big-numbers
+1
+00
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+Insights
+Settings
+Basic-arithmetic-with-big-numbers/longDivision.c
+
+root major changes: introduced and improved functions.
+Latest commit 7d161ad 4 days ago
+ History
+ 1 contributor
+Executable File  383 lines (310 sloc)  10.7 KB
+ 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,16 +41,13 @@
 #include "chkops.h"
 
 /*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file. First the dividend and then the divisor. The dividend should alwyas be >= the divisor otherwise the result will be zero.
-
 Example:
-
 ./longDivision 343456778384378290000000 3443499958888
 ./longDivision bignumber.txt 100 bignumber2.txt 10
-
 NOTE: the cuotient will replace the dividend, so you may want to copy its value to a different location.
 */
 
-char *longDivision(char *dividend, char divisor[]);
+char *longDivision(char *dividend, char *divisor);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 int compareUnsignedIntegers(char* n1, char *n2);
 char *increment(char* numberPlusPlus);
@@ -58,7 +90,7 @@ int main(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
-char *longDivision(char *dividend, char divisor[])
+char *longDivision(char *dividend, char *divisor)
 {
 	//Error handling
 	if( divisor == NULL || dividend == NULL )
@@ -381,3 +413,16 @@ char* readBigNumber(char *fileName, const unsigned int SLICELENGTH)
 
 	return primeSlice;
 }
+© 2020 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+
