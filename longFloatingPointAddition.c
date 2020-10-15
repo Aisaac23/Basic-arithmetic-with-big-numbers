@@ -5,16 +5,6 @@
 #include <ctype.h>
 #include "chkops.h"
 
-/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file. First the dividend and then the divisor. The dividend should alwyas be >= the divisor otherwise the result will be zero.
-
-Example:
-
-./longDivision 343456778384378290000000 3443499958888
-./longDivision bignumber.txt 100 bignumber2.txt 10
-
-NOTE: the cuotient will replace the dividend, so you may want to copy its value to a different location.
-*/
-
 char *longFloatingPointAddition(char *dividend, char divisor[]);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 
@@ -155,6 +145,11 @@ char *longFloatingPointAddition(char *summand1, char *summand2)
 	strcat(result, ".");
 	memcpy((result+total_digits+1), decimal_result, strlen(decimal_result));
 
+	free(decimal_result);
+	free(integer_result);
+	free(summand1_digit_buffer);
+	free(summand2_digit_buffer);
+	
 	return result;
 }
 
@@ -194,48 +189,38 @@ unsigned long long count_integer_digits(char *fp_number)
 
 char *increment(char* numberPlusPlus)
 {
-	unsigned long long index, len;
-	bool added = false;
-	char *result; 
-	if(numberPlusPlus != NULL)
-	{
-		index = len = strlen(numberPlusPlus);
-		for(int i = 0; i < len; i++)
-			if(!isdigit(numberPlusPlus[i]))
-				return numberPlusPlus;
-		if(len == 0)
-			return numberPlusPlus;	
-		
-		result = calloc(len+1, sizeof(char));
-		strcpy(result, numberPlusPlus);
-		result[len] = '\0';
-		do
-		{
-			index--;
-			if(result[index] < '9')
-			{
-				result[index]++;
-				added = true;
-			}
-			else if( index >= 0)
-				result[index] = '0';
+	char *n1_zero_ptr, *n2_zero_ptr;
+	unsigned long long n1Length, n2Length;
+	
+	n1_zero_ptr = n1;
+	while(n1_zero_ptr[0] == '0' && n1_zero_ptr[1] != '\0')
+		n1_zero_ptr++;
+	
+	n2_zero_ptr = n2;
+	while(n2_zero_ptr[0] == '0' && n2_zero_ptr[1] != '\0')
+		n2_zero_ptr++;
+	
+	n1Length = strlen(n1_zero_ptr);
+	n2Length = strlen(n2_zero_ptr);
+	
+	if(n1Length > n2Length)
+		return 1;
+	if(n1Length < n2Length)
+		return -1;
 
-		}while( index > 0 && !added );
-		
-		if(!added)
-		{
-			result = realloc( result, len+2 );
-			memmove(result+1, result, len+1);
-			result[0] = '1';
-		}
-	}
-
-	return result; 
+	if( strcmp(n1_zero_ptr, n2_zero_ptr) == 0 )
+		return 0;
+	for( unsigned long long index = 0; index < n1Length; index++)
+		if( n1_zero_ptr[index] < n2_zero_ptr[index] )
+			return -1;
+		else if( n1_zero_ptr[index] > n2_zero_ptr[index] )
+			return 1;
+	return 0;
 }
 
 char* longAddition( char* summand1,  char* summand2)
 {
-	unsigned long long summand1Length, summand2Length, resultLength, shortest, carry = 0, newSize;
+	unsigned long long summand1Length, summand2Length, resultLength, shortest, carry = 0;
 	char *result; 
 	unsigned int sum = 0;//biggest number for this variable will be 18.
 	bool summand1IsShorter;	
@@ -243,6 +228,7 @@ char* longAddition( char* summand1,  char* summand2)
 	//Error handling
 	if( summand1 == NULL || summand2 == NULL )
 		return NULL;
+	
 	summand1Length = strlen(summand1);
 	summand2Length = strlen(summand2);
 	
@@ -254,17 +240,19 @@ char* longAddition( char* summand1,  char* summand2)
 	if( summand2Length == 0 )
 		return summand1;
 
-
-	resultLength = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;
+	//Pick the greater length from both summands
+	resultLength = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;//99+9=108 (max, one more digit)
 	
-	result = calloc( resultLength+1, sizeof(char) );
-	for(unsigned long long i = 0; i<resultLength; i++)
-			result[i] = '0';
+	//Initializing the space for the result.
+	result = calloc( resultLength+1, sizeof(char) );// plus one for the '\0'
+	memset(result, '0', resultLength);
 	result[resultLength] = '\0';
 	
-	//Picking the shortest number in length of characters
+	//Picking the shortest length
 	shortest = (summand1Length <= summand2Length) ? summand1Length : summand2Length;
+
 	summand1IsShorter = (summand1Length <= summand2Length) ? true : false;
+
 	do
 	{
 		resultLength--;
@@ -276,30 +264,24 @@ char* longAddition( char* summand1,  char* summand2)
 			else
 				sum = (summand1[resultLength-1]-'0') + (summand2[shortest]-'0');
 		}
-		else if ( resultLength >= 1 )// When one of the summands was added but there are digits left tu add in the other one.
+		else if ( resultLength >= 1 )// When shortest summand was added but there are digits left to add in the other one.
 		{
 			if( summand1IsShorter )
 				sum = (summand2[resultLength-1]-'0');
 			else
 				sum = (summand1[resultLength-1]-'0');
 		}
-		else
+		else // When shortest and resultLength are ZERO, sum should be zero as well.
 			sum = 0;
 		
 		sum+=carry;
 		carry = (sum > 9) ? sum/10 : 0;
 		sum = (sum > 9) ? sum%10 : sum;
+		
+		 
 		result[resultLength] = (char)( sum + '0' );
 
-	}while( resultLength > 0 );
-
-	//you could have a spare zero in the left, so we rotate
-	if(result[0] == '0' && strlen(result) > 1)
-		memmove(result, result+1, strlen(result)*sizeof(char) );
-	
-	//Finally we resize the result to get only the useful numbers.
-	newSize = strlen(result);
-	result = realloc(result, newSize);
+	}while( resultLength > 0 );;//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 	
 	return result;
 }

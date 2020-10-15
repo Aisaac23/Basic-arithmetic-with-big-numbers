@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "chkops.h"
-/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file.
+
+/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from each file.
 
 Example:
 
@@ -54,28 +55,35 @@ char* longMultiplication( char* factor1,  char* factor2)
 	if( factor1 == NULL || factor2 == NULL )
 		return NULL;
 
-	unsigned long long f1Size = strlen(factor1), f2Size = strlen(factor2);
-	unsigned long long resultSize = f1Size + f2Size;
-	
-	char *result; 
+	unsigned long long f1Size, f2Size, resultSize;
+	unsigned long long longest, shortest, resultIndex, units;
 	unsigned int product = 0, prevCarry = 0, sumCarry = 0, carry = 0;
+	char *result;
+	bool factor1_is_greater; 
+	
+	f1Size = strlen(factor1);
+	f2Size = strlen(factor2);
 	
 	//Error handling
 	if( f1Size == 0 || f2Size == 0 )
 		return NULL;
-
+	
+	resultSize = f1Size + f2Size;// 99x999=98,901 -> 2+3 = 5 digits long
+	
 	result = calloc( resultSize+1, sizeof(char) );
-
-	for(unsigned long long i = 0; i<resultSize; i++)
-			result[i] = '0';
+	memset(result, '0', resultSize);
 	result[resultSize] = '\0';
 	
-	//Picking the shortest number in length of characters
-	unsigned long long longest, shortest, resultIndex, units;
+	//Picking the shortest and longest number in length of characters
 	longest = f1Size >= f2Size ? f1Size : f2Size ;
 	shortest = f2Size <= f1Size ? f2Size : f1Size ;
 	units = 0;
 
+	factor1_is_greater = (f1Size >= f2Size) ? true : false;
+	/*We move from right to left in three different forms:
+		1. By the resultIndex, placing the resulting digits on their respective place.
+		2. By the shortes of the factors, multiplying each of its digits by all of the longests
+		3. By the longests of the factors*/
 	do
 	{
 		shortest--;
@@ -84,7 +92,7 @@ char* longMultiplication( char* factor1,  char* factor2)
 		{
 			// we get the product of the multiplication of two factors and its carry
 			longest--;
-			if( f1Size >= f2Size )
+			if( factor1_is_greater )
 				product = (factor1[longest]-'0') * (factor2[shortest]-'0');
 			else
 				product = (factor1[shortest]-'0') * (factor2[longest]-'0');
@@ -96,10 +104,12 @@ char* longMultiplication( char* factor1,  char* factor2)
 			product += prevCarry;
 			prevCarry = (product > 9) ? product/10 : 0;
 			product -= prevCarry*10;
+			
 			// we add the previous result to the current one
 			product += (result[resultIndex] - '0');
 			sumCarry = (product > 9) ? product/10 : 0;
 			product -= sumCarry*10;
+			
 			//We get the carry for the next operation
 			prevCarry += (carry + sumCarry); 
 			// we get the product of the multiplication of two factors and its carry

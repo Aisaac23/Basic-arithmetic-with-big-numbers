@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "chkops.h"
-/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file.
+
+/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from each file.
 
 Examples:
 
@@ -59,6 +60,7 @@ char* longAddition( char* summand1,  char* summand2)
 	//Error handling
 	if( summand1 == NULL || summand2 == NULL )
 		return NULL;
+	
 	summand1Length = strlen(summand1);
 	summand2Length = strlen(summand2);
 	
@@ -70,17 +72,17 @@ char* longAddition( char* summand1,  char* summand2)
 	if( summand2Length == 0 )
 		return summand1;
 
-
+	//Pick the greater length from both summands
 	resultLength = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;//99+9=108 (max, one more digit)
 	
-	result = calloc( resultLength, sizeof(char) );
-	for(unsigned long long i = 0; i<resultLength; i++)
-			result[i] = '0';
+	//Initializing the space for the result.
+	result = calloc( resultLength+1, sizeof(char) );// plus one for the '\0'
+	memset(result, '0', resultLength);
 	result[resultLength] = '\0';
 	
 	//Picking the shortest length
 	shortest = (summand1Length <= summand2Length) ? summand1Length : summand2Length;
-
+	//this is done to perform the addition in place so we don't have to generate two extra summands of equal space.
 	summand1IsShorter = (summand1Length <= summand2Length) ? true : false;
 
 	do
@@ -108,10 +110,10 @@ char* longAddition( char* summand1,  char* summand2)
 		carry = (sum > 9) ? sum/10 : 0;
 		sum = (sum > 9) ? sum%10 : sum;
 		
-		// 
+		 
 		result[resultLength] = (char)( sum + '0' );
 
-	}while( resultLength > 0 );
+	}while( resultLength > 0 );;//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 	
 	return result;
 }

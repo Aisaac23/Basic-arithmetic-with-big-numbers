@@ -5,17 +5,17 @@
 #include <ctype.h>
 #include "chkops.h"
 
-/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from the file. First the dividend and then the divisor. The dividend should alwyas be >= the divisor otherwise the result will be zero.
+/*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from each file. First the dividend and then the divisor. The dividend should alwyas be >= the divisor otherwise the result will be zero.
 
 Example:
+./longDivisionWithReminder 343456778384378290000000 3443499958888
+./longDivisionWithReminder bignumber.txt 100 bignumber2.txt 10
 
-./longDivision 343456778384378290000000 3443499958888
-./longDivision bignumber.txt 100 bignumber2.txt 10
+NOTE: for this specific function we keep the reminder, but we have to make sure to pass as arguments two modifiable arrays, in other words: DO NOT pass constant expressions as arguments.
 
-NOTE: the cuotient will replace the dividend, so you may want to copy its value to a different location.
 */
 
-char *longDivisionWithReminder(char *dividend, char divisor[]);
+char *longDivisionWithReminder(char *dividend, char *divisor);
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 int compareUnsignedIntegers(char* n1, char *n2);
 char *increment(char* numberPlusPlus);
@@ -51,111 +51,118 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 	
-	printf("Cuotient: %s\n", result);
-	if( result != NULL )
-		free(result);
+	printf("Cuotient: %s, Reminder: %s\n", result, number1);
 
 	return EXIT_SUCCESS;
 }
 
-char *longDivisionWithReminder(char *dividend, char divisor[])
+char *longDivisionWithReminder(char *dividend, char *divisor)
 {
 	//Error handling
 	if( divisor == NULL || dividend == NULL )
 		return NULL;
 	
 	//With this one I reused the longSubtraction's function code and made some modifications.  
-	const unsigned long long dividendLength = strlen(dividend), divisorLength = strlen(divisor);
-	char *cuotient, *z, *newDividend;
-
-	z = calloc(2, sizeof(char));
-	z[0] = '0';
-	z[1] = '\0';
+	unsigned long long dividendLength, divisorLength, lengthDiff, newDividend_Length, tensMultiply_len;
+	char *cuotient = NULL, *newDividend = NULL, *tensMultiply = NULL, *newDivisor = NULL;
 	
-//Error handling
+	dividendLength = strlen(dividend);
+	divisorLength = strlen(divisor);
+	
+	//Error handling
 	if( divisorLength == 0 || dividendLength == 0 )
 		return NULL;
-
-	if(divisor[0] == '0')
-		return NULL;
-
-	if( dividendLength < divisorLength || dividend[0] == '0')
-		return z;
-	else if( dividendLength == divisorLength )
-		if( compareUnsignedIntegers(dividend, divisor) == -1 )
-			return z;
-
-	cuotient = calloc( dividendLength+1, sizeof(char) );//divisor min value (aside from zero) is 1, so cuotient'd be the same length as dividend.
+	
+	if( compareUnsignedIntegers(divisor, "0") == 0)
+		return "NaN";
+	
+	cuotient = calloc( dividendLength+1, sizeof(char) );//divisor min value is 1, so cuotient'd be the same length as dividend.
 	newDividend = calloc( dividendLength+1, sizeof(char) ); // we need this one to change the value recieved as argument in dividend
-	
-	
 	
 	cuotient[0] = '0';
 	cuotient[1] = '\0';
-
-	strcpy(newDividend, dividend);
 	
-	while( compareUnsignedIntegers(newDividend, divisor) != -1 )
-	{		
+	if( compareUnsignedIntegers(dividend, "0") == 0)// when dividend is zero we return zero 
+		return cuotient;
+	
+	memset(cuotient, '0', dividendLength);
+	cuotient[dividendLength] = '\0';
+	strcpy(newDividend, dividend);
+
+	while( compareUnsignedIntegers(newDividend, divisor)  != -1 )
+	{	
+		while(newDividend[0] == '0')// ignoring left-zeros, e.g 0390
+			newDividend++;
+
 		if( strlen(newDividend) > divisorLength )
 		{
-			char *tensMultiply, *newDivisor;
-			int lengthDiff;
-
-			lengthDiff = strlen(newDividend) - strlen(divisor) - 1;
-
-			tensMultiply = calloc( lengthDiff+1, sizeof(char) );
-			newDivisor = calloc( strlen(newDividend)+1, sizeof(char) ); //to increment the amount of divisor if needed.
-
-			tensMultiply[0] = '1';
-
-			strcpy(newDivisor, divisor);
+			newDividend_Length = strlen(newDividend);
+			lengthDiff = newDividend_Length - 1;
 			
-			for(int index = 0; index < lengthDiff; index++)
-			{	
-				strcat(newDivisor, "0");
-				strcat(tensMultiply, "0");
-			}
-
+			//Initializing the new divisor: 80,000
+			newDivisor = realloc( newDivisor, (lengthDiff+1) * sizeof(char) ); //to increment the amount of divisor if needed.
+			memset(newDivisor, '0', lengthDiff);
+			newDivisor[lengthDiff] = '\0';
+			strncpy(newDivisor, divisor, divisorLength);
+			
+			//Initializing the tens multiply so: 99999/8 turns into -> 99,999/(8*10,000)
+			tensMultiply_len = strlen(newDivisor) - divisorLength + 1;
+			tensMultiply = realloc( tensMultiply, (tensMultiply_len+1) * sizeof(char) );
+			memset(tensMultiply, '0', tensMultiply_len);
+			tensMultiply[tensMultiply_len] = '\0';
+			tensMultiply[0] = '1';
+			
+			//we add how many times divisor fits in newDividend and then we subtract from it.
 			cuotient = longAddition(cuotient, tensMultiply);
 			newDividend = longSubtraction( newDividend, newDivisor );
-			//printf("%s\n", newDividend);
 		}
-		else
+		else // if the dividend and the divisor are the same length, then you only need up to 9 subtractions.
 		{
 			cuotient = increment(cuotient);
 			newDividend = longSubtraction( newDividend, divisor );
 		}
+		
+		while(cuotient[0] == '0' && cuotient[1] != '\0')// ignoring left-zeros, e.g 0390
+				cuotient++;
+
 	}
-	strcpy(dividend, newDividend);
-	
-	//you could have spare zeros in the left, so we rotate
-	while(dividend[0] == '0' && strlen(dividend) > 1)
-		memmove(dividend, dividend+1, dividendLength*sizeof(char)+1 );
-	while(cuotient[0] == '0' && strlen(cuotient) > 1)
-		memmove(cuotient, cuotient+1, dividendLength*sizeof(char)+1 );
+
+	//Here we keep the reminder in the dividend
+	memset(dividend, '0', dividendLength);
+	memcpy(dividend, newDividend, strlen(newDividend)+1 );
 
 	return cuotient;
 }
 
 int compareUnsignedIntegers(char* n1, char *n2)
 {
-	int n1Len, n2Len;
-	n1Len = strlen(n1);
-	n2Len = strlen(n2);
+	char *n1_zero_ptr, *n2_zero_ptr;
+	unsigned long long n1Length, n2Length;
 	
-	if(n1Len < n2Len)
-		return -1;
-	if(n1Len > n2Len)
+	n1_zero_ptr = n1;
+	while(n1_zero_ptr[0] == '0' && n1_zero_ptr[1] != '\0')
+		n1_zero_ptr++;
+	
+	n2_zero_ptr = n2;
+	while(n2_zero_ptr[0] == '0' && n2_zero_ptr[1] != '\0')
+		n2_zero_ptr++;
+	
+	n1Length = strlen(n1_zero_ptr);
+	n2Length = strlen(n2_zero_ptr);
+	
+	if(n1Length > n2Length)
 		return 1;
-	if( strcmp(n1, n2) == 0 )
+	if(n1Length < n2Length)
+		return -1;
+
+	if( strcmp(n1_zero_ptr, n2_zero_ptr) == 0 )
 		return 0;
-	for( unsigned long long index = 0; index < n1Len; index++)
-		if( n1[index] < n2[index] )
+	for( unsigned long long index = 0; index < n1Length; index++)
+		if( n1_zero_ptr[index] < n2_zero_ptr[index] )
 			return -1;
-		else if( n1[index] > n2[index] )
+		else if( n1_zero_ptr[index] > n2_zero_ptr[index] )
 			return 1;
-	return -2;
+	return 0;
 }
 
 char *increment(char* numberPlusPlus)
@@ -166,9 +173,7 @@ char *increment(char* numberPlusPlus)
 	if(numberPlusPlus != NULL)
 	{
 		index = len = strlen(numberPlusPlus);
-		for(int i = 0; i < len; i++)
-			if(!isdigit(numberPlusPlus[i]))
-				return numberPlusPlus;
+
 		if(len == 0)
 			return numberPlusPlus;	
 		
@@ -201,17 +206,19 @@ char *increment(char* numberPlusPlus)
 
 char *longSubtraction(char *minuend, char *subtrahend)
 {
-	unsigned long long int minuendLength, subtrahendLength, resultSize, shortest, newSize;
-	int subtraction, carry = 0;
+	/*Subtraction parts: 	9878-> minuend
+				  98-> subtrahend*/
+	unsigned long long int minuendLength, subtrahendLength, resultLength, shortest;
+	int subtraction, carry = 0, sign = 0;
 	char *result;
-	bool subtrahendIsShorter = true;
+	bool minuendIsLower = true;
 
 	if( minuend == NULL || subtrahend == NULL )
 		return NULL;
 
 	minuendLength = strlen(minuend); 
 	subtrahendLength = strlen(subtrahend);
-	resultSize = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;
+	resultLength = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;// 0 - 100 = [-]100
 	
 	//Error handling
 	if( minuendLength == 0 && subtrahendLength == 0 )
@@ -220,87 +227,79 @@ char *longSubtraction(char *minuend, char *subtrahend)
 		return minuend;
 	if( minuendLength == 0 )
 		return subtrahend;
-
-
-	result = calloc( resultSize+1, sizeof(char) );
 	
 	//we need to verify if subtrahend is greater than minuend in which case the result will be negative
-	subtrahendIsShorter = (subtrahendLength <= minuendLength) ? true : false;// If it's greater in length, for sure it will be greater
+	minuendIsLower = (minuendLength < subtrahendLength) ? true : false;// If it's greater in length, for sure it will be greater
+
 	if( minuendLength == subtrahendLength )//if they are equal in length we need to compare its digits
 	{
-		for(int compIndex = 0; compIndex<resultSize && subtrahendIsShorter; compIndex++)
+		for(int compIndex = 0; compIndex<resultLength && !minuendIsLower; compIndex++)
 			if( minuend[compIndex] < subtrahend[compIndex] )
-				subtrahendIsShorter = false;
+				minuendIsLower = true;
 			else if( minuend[compIndex] > subtrahend[compIndex] )
-				compIndex = resultSize;
+				compIndex = resultLength;
 	}
 
-	for(unsigned long long int i = 0; i<resultSize; i++)
-			result[i] = '0';
-	result[resultSize] = '\0';
-	
+	if(minuendIsLower)
+		sign = 1;
+
+	//Initializing space for the result
+	result = calloc( resultLength + 1 + sign, sizeof(char) );// plus one: '\0' or two if it's negative 
+	memset(result, '0', resultLength);
+	result[resultLength] = '\0';
+
+	if(minuendIsLower)
+		result[0] = '-';
 	shortest = (subtrahendLength <= minuendLength) ? subtrahendLength : minuendLength; // get the shortest out of both
+
 	do
 	{
-		resultSize--;
+		resultLength--;
 		if(shortest > 0)
 		{
 			shortest--;
-			if( subtrahendIsShorter )
+			if( minuendIsLower )
 			{	// if the next number is zero and we have carry == -1 then we set carry to 9.
-				if( resultSize < subtrahendLength-2 && carry==-1 ) 
-					carry = ( minuend[resultSize] == '0') ? 9 : -1;	
-				subtraction = (minuend[resultSize] - '0') - (subtrahend[shortest] - '0') + carry;
+				if( resultLength <= minuendLength -2 && carry==-1 ) // subtrahend-2 -> evaluate from the penultimate digit.
+					carry = ( subtrahend[resultLength] == '0' ) ? 9 : -1;	
+				subtraction = ( subtrahend[resultLength] - '0') - (minuend[shortest] - '0' ) + carry;
 			}
 			else
 			{
-				if( resultSize < strlen(minuend)-2 && carry==-1 )
-					carry = ( subtrahend[resultSize] == '0') ? 9 : -1;	
-				subtraction = (subtrahend[resultSize] - '0') - (minuend[shortest] - '0') + carry;
+				if( resultLength <= subtrahendLength -2 && carry==-1 )// subtrahend-2 -> evaluate from the penultimate digit.
+					carry = ( minuend[resultLength] == '0') ? 9 : -1;	
+				subtraction = ( minuend[resultLength] - '0') - ( subtrahend[shortest] - '0' ) + carry;
 			}
-			
+
 		}
-		else if ( resultSize >= 0 )//This is used when one of the numbers is has greater length than the other.
+		else if ( resultLength >= 0 )//This is used when one of the numbers has greater length than the other.
 		{
-			if( subtrahendIsShorter )
-				subtraction = (minuend[resultSize] - '0') + carry;
+			if( minuendIsLower )
+				subtraction = (subtrahend[resultLength] - '0') + carry;
 			else
-				subtraction = (subtrahend[resultSize]-'0') + carry;
+				subtraction = (minuend[resultLength]-'0') + carry;
 		}
 		
-		if( subtraction < 0 || carry == 9 )//if the result was negative or the carry had to be 9 we set carry to -1 for the next digit
+		if( subtraction < 0 || carry == 9 )//if the result was negative or the carry had to be 9, then we set carry to -1 for the next digit
 		{
-			if( subtraction < 0 )
+			if( subtraction < 0)
 				subtraction += 10;
 			carry = -1;
 		}
 		else
 			carry = 0;		
 	
-		result[ resultSize ] = (char)( subtraction + '0' ) ;
+		result[ resultLength+sign ] = (char)( subtraction + '0' ) ;
 
-	}while(resultSize > 0);//resultSize is unsigned so it'd cause a runtime error if it gets to -1
-	
-	//you could have spare zeros in the left, so we rotate 
-	while(result[0] == '0' && strlen(result) > 1)
-		memmove(result, result+1, strlen(result)*sizeof(char)+1);
+	}while(resultLength > 0);//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 
-	newSize = strlen(result);
-	if( !subtrahendIsShorter ) //if the result was negative, we add the - sign.
-	{
-		result = realloc( result, newSize*sizeof(char)+2 );
-		memmove(result+1, result, newSize*sizeof(char)+1 );
-		result[0]='-';	
-	}
-	else //otherwise we just resize it
-		result = realloc( result, newSize*sizeof(char)+1 );
 
 	return result;
 }
 
 char* longAddition( char* summand1,  char* summand2)
 {
-	unsigned long long summand1Length, summand2Length, resultSize, shortest, carry = 0, newSize;
+	unsigned long long summand1Length, summand2Length, resultLength, shortest, carry = 0;
 	char *result; 
 	unsigned int sum = 0;//biggest number for this variable will be 18.
 	bool summand1IsShorter;	
@@ -308,6 +307,7 @@ char* longAddition( char* summand1,  char* summand2)
 	//Error handling
 	if( summand1 == NULL || summand2 == NULL )
 		return NULL;
+	
 	summand1Length = strlen(summand1);
 	summand2Length = strlen(summand2);
 	
@@ -319,55 +319,51 @@ char* longAddition( char* summand1,  char* summand2)
 	if( summand2Length == 0 )
 		return summand1;
 
-
-	resultSize = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;
+	//Pick the greater length from both summands
+	resultLength = (summand1Length >= summand2Length) ? summand1Length+1 : summand2Length+1;//99+9=108 (max, one more digit)
 	
-	result = calloc( resultSize+1, sizeof(char) );
-	for(unsigned long long i = 0; i<resultSize; i++)
-			result[i] = '0';
-	result[resultSize] = '\0';
+	//Initializing the space for the result.
+	result = calloc( resultLength+1, sizeof(char) );// plus one for the '\0'
+	memset(result, '0', resultLength);
+	result[resultLength] = '\0';
 	
-	//Picking the shortest number in length of characters
+	//Picking the shortest length
 	shortest = (summand1Length <= summand2Length) ? summand1Length : summand2Length;
+
 	summand1IsShorter = (summand1Length <= summand2Length) ? true : false;
+
 	do
 	{
-		resultSize--;
+		resultLength--;
 		if(shortest > 0)
 		{
 			shortest--;
 			if( summand1IsShorter )
-				sum = (summand1[shortest]-'0') + (summand2[resultSize-1]-'0');
+				sum = (summand1[shortest]-'0') + (summand2[resultLength-1]-'0');
 			else
-				sum = (summand1[resultSize-1]-'0') + (summand2[shortest]-'0');
+				sum = (summand1[resultLength-1]-'0') + (summand2[shortest]-'0');
 		}
-		else if ( resultSize >= 1 )// When one of the summands was added but there are digits left tu add in the other one.
+		else if ( resultLength >= 1 )// When shortest summand was added but there are digits left to add in the other one.
 		{
 			if( summand1IsShorter )
-				sum = (summand2[resultSize-1]-'0');
+				sum = (summand2[resultLength-1]-'0');
 			else
-				sum = (summand1[resultSize-1]-'0');
+				sum = (summand1[resultLength-1]-'0');
 		}
-		else
+		else // When shortest and resultLength are ZERO, sum should be zero as well.
 			sum = 0;
 		
 		sum+=carry;
 		carry = (sum > 9) ? sum/10 : 0;
 		sum = (sum > 9) ? sum%10 : sum;
-		result[resultSize] = (char)( sum + '0' );
+		 
+		result[resultLength] = (char)( sum + '0' );
 
-	}while( resultSize > 0 );
-
-	//you could have a spare zero in the left, so we rotate
-	if(result[0] == '0' && strlen(result) > 1)
-		memmove(result, result+1, strlen(result)*sizeof(char) );
-	
-	//Finally we resize the result to get only the useful numbers.
-	newSize = strlen(result);
-	result = realloc(result, newSize);
+	}while( resultLength > 0 );;//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 	
 	return result;
 }
+
 
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH)
 {
