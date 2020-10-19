@@ -19,9 +19,9 @@ These files are the header version of the programs described above. With the goa
 *	longDivision();
 	*	Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the division. For this specific function we LOSE the reminder, to keep the reminder on the dividend use longDivisionWithReminder. The dividend should alwyas be >= the divisor otherwise the result will be zero.
 *	longDivisionFloatingPointResult();
-*	Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the division with the passed floating-point precision.
+	*	Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the division with the passed floating-point precision.
 *	longDivisionWithReminder();
-*	Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the division. For this specific function we KEEP the reminder on the pointer that originally stores the dividend, so becareful to save your dividend in case you want to use it later. The dividend should alwyas be >= the divisor otherwise the result will be zero.
+	*	Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the division. For this specific function we KEEP the reminder on the pointer that originally stores the dividend, so becareful to save your dividend in case you want to use it later. The dividend should alwyas be >= the divisor otherwise the result will be zero.
 *	longModule();
 	*	Receives as arguments, two unsigned integers (as strings) and returns a string with the REMINDER of the division.
 *	longFloatingPointSubtracction();
