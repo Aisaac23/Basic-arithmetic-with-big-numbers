@@ -18,7 +18,7 @@ NOTE: for this specific function we lose the reminder, to keep the reminder on t
 char* readBigNumber(char *fileName, const unsigned int SLICELENGTH);
 char *longDivision(char *dividend, char *divisor);
 int compareUnsignedIntegers(char* n1, char *n2);
-char *increment(char* numberPlusPlus);
+void increment(char* numberPlusPlus);
 char *longSubtraction(char *minuend, char *subtrahend);
 char* longAddition( char* summand1,  char* summand2);
 
@@ -118,7 +118,7 @@ char *longDivision(char *dividend, char *divisor)
 		}
 		else // if the dividend and the divisor are the same length, then you only need up to 9 subtractions. E.g: 999/100 = 9, rem= 99
 		{
-			cuotient = increment(cuotient);//// "increment" is the fourth
+			increment(cuotient);//// "increment" is the fourth
 			newDividend = longSubtraction( newDividend, divisor );
 		}
 
@@ -162,43 +162,42 @@ int compareUnsignedIntegers(char* n1, char *n2)
 	return 0;
 }
 
-char *increment(char* numberPlusPlus)
+void increment(char* numberPlusPlus)
 {
 	unsigned long long index, len;
 	bool added = false;
-	char *result; 
 	if(numberPlusPlus != NULL)
 	{
 		index = len = strlen(numberPlusPlus);
 
 		if(len == 0)
-			return numberPlusPlus;	
-		
-		result = calloc(len+1, sizeof(char));
-		strcpy(result, numberPlusPlus);
-		result[len] = '\0';
-		do
-		{
-			index--;
-			if(result[index] < '9')
-			{
-				result[index]++;
-				added = true;
-			}
-			else if( index >= 0)
-				result[index] = '0';
+			return;	
 
-		}while( index > 0 && !added );
-		
-		if(!added)
+		if(numberPlusPlus[len-1] < '9')
+			numberPlusPlus[len-1]++;
+		else
 		{
-			result = realloc( result, len+2 );
-			memmove(result+1, result, len+1);
-			result[0] = '1';
+			do
+			{
+				index--;
+				if(numberPlusPlus[index] < '9')
+				{
+					numberPlusPlus[index]++;
+					added = true;
+				}
+				else
+					numberPlusPlus[index] = '0';
+
+			}while( index > 0 && !added );
+		
+			if(!added)
+			{
+				numberPlusPlus = realloc( numberPlusPlus, len+2 ); // for '1' and '\0' which len does not consider.
+				memmove(numberPlusPlus+1, numberPlusPlus, len+1); //all the characters plus '\0'
+				numberPlusPlus[0] = '1';
+			}
 		}
 	}
-
-	return result; 
 }
 
 char *longSubtraction(char *minuend, char *subtrahend)
