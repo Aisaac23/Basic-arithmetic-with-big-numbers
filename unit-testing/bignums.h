@@ -16,7 +16,7 @@ char *longDivisionFloatingPointResult(char *dividend, char divisor[], unsigned i
 char *longDivisionWithReminder(char *dividend, char divisor[]);
 char *longModule(char *dividend, char *divisor);
 
-char *longFloatingPointSubtracction(char *minuend, char *subtrahend);
+char *longFloatingPointSubtraction(char *minuend, char *subtrahend);
 char *longFloatingPointMultiplication(char *factor1, char *factor2);
 char *longFloatingPointDivision(char *dividend, char *divisor);
 char *longFloatingPointAddition(char *summand1, char *summand2);
@@ -33,6 +33,7 @@ bool isUnsignedFloat(char* number);
 
 unsigned long long count_decimal_digits(char *fp_number);
 unsigned long long count_integer_digits(char *fp_number);
+
 
 char *readBigNumber(char *fileName, const unsigned long long SLICELENGTH);
 char *formatNumber(char *n, int slice, char separator);

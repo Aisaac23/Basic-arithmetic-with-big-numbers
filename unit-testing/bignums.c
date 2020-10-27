@@ -4,7 +4,7 @@
 char* longAddition( char* summand1,  char* summand2)
 {
 	unsigned long long summand1Length, summand2Length, resultLength, shortest, carry = 0;
-	char *result; 
+	char *result, *zeros_ptr; 
 	unsigned int sum = 0;//biggest number for this variable will be 18.
 	bool summand1IsShorter;	
 	
@@ -66,6 +66,15 @@ char* longAddition( char* summand1,  char* summand2)
 
 	}while( resultLength > 0 );;//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 	
+	zeros_ptr = result;
+	while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
+		zeros_ptr++;
+	
+	resultLength = strlen(zeros_ptr);
+	memmove(result, zeros_ptr, resultLength+1);
+	
+	result = realloc(result, (resultLength+1)*sizeof(char)  );
+	
 	return result;
 }
 
@@ -76,7 +85,7 @@ char *longSubtraction(char *minuend, char *subtrahend)
 				  98-> subtrahend*/
 	unsigned long long int minuendLength, subtrahendLength, resultLength, shortest;
 	int subtraction, carry = 0, sign = 0;
-	char *result;
+	char *result, *zeros_ptr;
 	bool minuendIsLower = true;
 
 	if( minuend == NULL || subtrahend == NULL )
@@ -159,6 +168,14 @@ char *longSubtraction(char *minuend, char *subtrahend)
 
 	}while(resultLength > 0);//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 
+	zeros_ptr = result;
+	while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
+		zeros_ptr++;
+	
+	resultLength = strlen(zeros_ptr);
+	memmove(result, zeros_ptr, resultLength+1);
+	
+	result = realloc(result, (resultLength+1)*sizeof(char)  );
 
 	return result;
 }
@@ -170,10 +187,10 @@ char* longMultiplication( char* factor1,  char* factor2)
 	if( factor1 == NULL || factor2 == NULL )
 		return NULL;
 
-	unsigned long long f1Size, f2Size, resultSize;
+	unsigned long long f1Size, f2Size, resultLength;
 	unsigned long long longest, shortest, resultIndex, units;
 	unsigned int product = 0, prevCarry = 0, sumCarry = 0, carry = 0;
-	char *result;
+	char *result, *zeros_ptr;
 	bool factor1_is_greater; 
 	
 	f1Size = strlen(factor1);
@@ -183,11 +200,11 @@ char* longMultiplication( char* factor1,  char* factor2)
 	if( f1Size == 0 || f2Size == 0 )
 		return NULL;
 	
-	resultSize = f1Size + f2Size;// 99x999=98,901 -> 2+3 = 5 digits long
+	resultLength = f1Size + f2Size;// 99x999=98,901 -> 2+3 = 5 digits long
 	
-	result = calloc( resultSize+1, sizeof(char) );
-	memset(result, '0', resultSize);
-	result[resultSize] = '\0';
+	result = calloc( resultLength+1, sizeof(char) );
+	memset(result, '0', resultLength);
+	result[resultLength] = '\0';
 	
 	//Picking the shortest and longest number in length of characters
 	longest = f1Size >= f2Size ? f1Size : f2Size ;
@@ -202,7 +219,7 @@ char* longMultiplication( char* factor1,  char* factor2)
 	do
 	{
 		shortest--;
-		resultIndex = (resultSize-1) - units;		
+		resultIndex = (resultLength-1) - units;		
 		do
 		{
 			// we get the product of the multiplication of two factors and its carry
@@ -238,6 +255,15 @@ char* longMultiplication( char* factor1,  char* factor2)
 		longest = f1Size >= f2Size ? f1Size : f2Size ;
 
 	}while( shortest >= 1 );
+
+	zeros_ptr = result;
+	while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
+		zeros_ptr++;
+	
+	resultLength = strlen(zeros_ptr);
+	memmove(result, zeros_ptr, resultLength+1);
+	
+	result = realloc(result, (resultLength+1)*sizeof(char) );
 
 	return result;
 }
@@ -283,15 +309,15 @@ char *longDivision(char *dividend, char *divisor)
 	memset(cuotient, '0', dividendLength);
 	cuotient[dividendLength] = '\0';
 	strcpy(newDividend, dividend);
+	newDividend[dividendLength] = '\0';
 
 	while( compareUnsignedIntegers(newDividend, divisor)  != -1 )
 	{	
-		while(newDividend[0] == '0')// ignoring left-zeros, e.g 0390
-			newDividend++;
+		newDividend_Length = strlen(newDividend);
 
 		if( strlen(newDividend) > divisorLength )
 		{
-			newDividend_Length = strlen(newDividend);
+			//newDividend_Length = strlen(newDividend);
 			lengthDiff = newDividend_Length - 1;
 			
 			//Initializing the new divisor: 80,000
@@ -317,8 +343,6 @@ char *longDivision(char *dividend, char *divisor)
 			newDividend = longSubtraction( newDividend, divisor );
 		}
 
-		while(cuotient[0] == '0' && cuotient[1] != '\0')// ignoring left-zeros, e.g 0390
-				cuotient++;
 	}
 
 	free(newDividend);
@@ -338,56 +362,60 @@ char *longModule(char *dividend, char *divisor)
 	if( divisor == NULL || dividend == NULL )
 		return NULL;
 	
-	const unsigned long long dividendLength = strlen(dividend), divisorLength = strlen(divisor);
-	char *z, *newDividend;
-
-	z = calloc(2, sizeof(char));
-	z[0] = '0';
-	z[1] = '\0';
+	//This is the only one out of the four basic operations which is function-dependant  
+	unsigned long long dividendLength, divisorLength, lengthDiff, newDividend_Length, tensMultiply_len;
+	char *newDividend = NULL, *tensMultiply = NULL, *newDivisor = NULL, *zeros_ptr;
+	
+	dividendLength = strlen(dividend);
+	divisorLength = strlen(divisor);
 	
 	//Error handling
 	if( divisorLength == 0 || dividendLength == 0 )
 		return NULL;
-
-	if(divisor[0] == '0')
-		return NULL;
-
-	if( dividendLength < divisorLength || dividend[0] == '0')
-		return z;
-	else if( dividendLength == divisorLength )
-		if( compareUnsignedIntegers(dividend, divisor) == -1 )
-			return z;
-
-	newDividend = calloc( dividendLength+1, sizeof(char) ); // we need this one to change the value recieved as argument in dividend
-
-	strcpy(newDividend, dividend);
 	
-	while( compareUnsignedIntegers(newDividend, divisor) != -1 )
-	{		
+	if( compareUnsignedIntegers(divisor, "0") == 0)//"compareUnsignedIntegers" is the first function that this one depends on.
+		return "NaN";
+	
+	newDividend = calloc( dividendLength+1, sizeof(char) ); // we need this one to change the value recieved as argument in dividend
+	
+	if( compareUnsignedIntegers(dividend, "0") == 0)// when dividend is zero we return zero 
+		return dividend;
+	
+	strcpy(newDividend, dividend);
+
+	while( compareUnsignedIntegers(newDividend, divisor)  != -1 )
+	{	
+		zeros_ptr = newDividend;
+		while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
+			zeros_ptr++;
+		
+		newDividend_Length = strlen(zeros_ptr);
+		memmove(newDividend, zeros_ptr, newDividend_Length+1);
+		
+		newDividend = realloc(newDividend, newDividend_Length+1 );
+
 		if( strlen(newDividend) > divisorLength )
 		{
-			char *tensMultiply, *newDivisor;
-			int lengthDiff;
-
-			lengthDiff = strlen(newDividend) - strlen(divisor) - 1;
-
-			tensMultiply = calloc( lengthDiff+1, sizeof(char) );
-			newDivisor = calloc( strlen(newDividend)+1, sizeof(char) ); //to increment the amount of divisor if needed.
-
-			tensMultiply[0] = '1';
-
-			strcpy(newDivisor, divisor);
+			newDividend_Length = strlen(newDividend);
+			lengthDiff = newDividend_Length - 1;
 			
-			for(int index = 0; index < lengthDiff; index++)
-			{	
-				strcat(newDivisor, "0");
-				strcat(tensMultiply, "0");
-			}
-
-			newDividend = longSubtraction( newDividend, newDivisor );
-
+			//Initializing the new divisor: 80,000
+			newDivisor = realloc( newDivisor, (lengthDiff+1) * sizeof(char) ); //to increment the amount of divisor if needed.
+			memset(newDivisor, '0', lengthDiff);
+			newDivisor[lengthDiff] = '\0';
+			strncpy(newDivisor, divisor, divisorLength);
+			
+			//Initializing the tens multiply so: 99999/8 turns into -> 99,999/(8*1,000)
+			tensMultiply_len = strlen(newDivisor) - divisorLength + 1;//e.g: 4 [8000] - 1 [8] + 1[1]
+			tensMultiply = realloc( tensMultiply, (tensMultiply_len+1) * sizeof(char) );// plus one: '\0'
+			memset(tensMultiply, '0', tensMultiply_len);
+			tensMultiply[tensMultiply_len] = '\0';
+			tensMultiply[0] = '1';
+			
+			//we add how many times divisor fits in newDividend and then we subtract from it.
+			newDividend = longSubtraction( newDividend, newDivisor );// "longSubtraction" is the third
 		}
-		else
+		else // if the dividend and the divisor are the same length, then you only need up to 9 subtractions. E.g: 999/100 = 9, rem= 99
 		{
 			newDividend = longSubtraction( newDividend, divisor );
 		}
@@ -410,9 +438,9 @@ char *longDivisionWithReminder(char *dividend, char *divisor)
 	if( divisor == NULL || dividend == NULL )
 		return NULL;
 	
-	//With this one I reused the longSubtraction's function code and made some modifications.  
-	unsigned long long dividendLength, divisorLength, lengthDiff, newDividend_Length;
-	char *cuotient = NULL, *newDividend = NULL, *tensMultiply = NULL, *newDivisor = NULL;
+	//This is the only one out of the four basic operations which is function-dependant  
+	unsigned long long dividendLength, divisorLength, lengthDiff, newDividend_Length, tensMultiply_len;
+	char *cuotient = NULL, *newDividend = NULL, *tensMultiply = NULL, *newDivisor = NULL, *zeros_ptr;
 	
 	dividendLength = strlen(dividend);
 	divisorLength = strlen(divisor);
@@ -421,10 +449,10 @@ char *longDivisionWithReminder(char *dividend, char *divisor)
 	if( divisorLength == 0 || dividendLength == 0 )
 		return NULL;
 	
-	if( compareUnsignedIntegers(divisor, "0") == 0)
+	if( compareUnsignedIntegers(divisor, "0") == 0)//"compareUnsignedIntegers" is the first function that this one depends on.
 		return "NaN";
 	
-	cuotient = calloc( dividendLength+1, sizeof(char) );//divisor min value (aside from zero) is 1, so cuotient'd be the same length as dividend.
+	cuotient = calloc( dividendLength+1, sizeof(char) );//divisor min value is 1, so cuotient'd be the same length as dividend.
 	newDividend = calloc( dividendLength+1, sizeof(char) ); // we need this one to change the value recieved as argument in dividend
 	
 	cuotient[0] = '0';
@@ -433,47 +461,61 @@ char *longDivisionWithReminder(char *dividend, char *divisor)
 	if( compareUnsignedIntegers(dividend, "0") == 0)// when dividend is zero we return zero 
 		return cuotient;
 	
-	memset(cuotient, '0', dividendLength);
-	cuotient[dividendLength] = '\0';
+	//memset(cuotient, '0', dividendLength);
+	//cuotient[dividendLength] = '\0';
 	strcpy(newDividend, dividend);
+	newDividend[dividendLength] = '\0';
 
 	while( compareUnsignedIntegers(newDividend, divisor)  != -1 )
 	{	
-		while(newDividend[0] == '0')// ignoring left-zeros, e.g 0390
-			newDividend++;
+		newDividend_Length = strlen(newDividend);
 
 		if( strlen(newDividend) > divisorLength )
 		{
-			newDividend_Length = strlen(newDividend);
+			//newDividend_Length = strlen(newDividend);
 			lengthDiff = newDividend_Length - 1;
-			
-			//Initializing the tens multiply so: 99999/8 turns into -> 99,999/(8*10,000)
-			tensMultiply = realloc( tensMultiply, (lengthDiff+1) * sizeof(char) );
-			memset(tensMultiply, '0', lengthDiff);
-			tensMultiply[lengthDiff] = '\0';
-			tensMultiply[0] = '1';
 			
 			//Initializing the new divisor: 80,000
 			newDivisor = realloc( newDivisor, (lengthDiff+1) * sizeof(char) ); //to increment the amount of divisor if needed.
 			memset(newDivisor, '0', lengthDiff);
 			newDivisor[lengthDiff] = '\0';
-
 			strncpy(newDivisor, divisor, divisorLength);
 			
-			cuotient = longAddition(cuotient, tensMultiply);
-			newDividend = longSubtraction( newDividend, newDivisor );
+			//Initializing the tens multiply so: 99999/8 turns into -> 99,999/(8*1,000)
+			tensMultiply_len = strlen(newDivisor) - divisorLength + 1;//e.g: 4 [8000] - 1 [8] + 1[1]
+			tensMultiply = realloc( tensMultiply, (tensMultiply_len+1) * sizeof(char) );// plus one: '\0'
+			memset(tensMultiply, '0', tensMultiply_len);
+			tensMultiply[tensMultiply_len] = '\0';
+			tensMultiply[0] = '1';
+			
+			//we add how many times divisor fits in newDividend and then we subtract from it.
+			cuotient = longAddition(cuotient, tensMultiply);// "longAddition" is the second function that this one depends on.
+			newDividend = longSubtraction( newDividend, newDivisor );// "longSubtraction" is the third
 		}
-		else // if the dividend and the divisor are the same length, then you only need up to 9 subtractions.
+		else // if the dividend and the divisor are the same length, then you only need up to 9 subtractions. E.g: 999/100 = 9, rem= 99
 		{
-			increment(cuotient);
+			increment(cuotient);//// "increment" is the fourth
 			newDividend = longSubtraction( newDividend, divisor );
 		}
-		while(cuotient[0] == '0' && cuotient[1] != '\0')// ignoring left-zeros, e.g 0390
-				cuotient++;
-	}
 
-	memset(dividend, '0', dividendLength);
-	memcpy(dividend, newDividend, strlen(newDividend)+1 );
+
+		zeros_ptr = cuotient;
+		while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
+			zeros_ptr++;
+		
+		dividendLength = strlen(zeros_ptr);
+		memmove(cuotient, zeros_ptr, dividendLength+1);
+		
+		cuotient = realloc(cuotient, (dividendLength+1)*sizeof(char) );
+
+	}
+	newDividend_Length = strlen(newDividend);
+
+
+	dividend[newDividend_Length] = '\0';
+
+	strcpy(dividend, newDividend);
+
 
 	return cuotient;
 }
@@ -494,29 +536,30 @@ char *longDivisionFloatingPointResult(char *dividend, char *divisor, unsigned in
 	localDividend = calloc(dividendLength + precision + 2, sizeof(char) );// one for the '\0' and one for the '.'
 	result = calloc(dividendLength + precision + 2, sizeof(char) );
 
-	result[0] = localDividend[dividendLength + precision + 1] = '\0'; 
+	result[0] = localDividend[dividendLength] = '\0'; 
 
 	strcpy(localDividend, dividend);
-	temp_result = longDivisionWithReminder(localDividend, divisor);
+	temp_result = longDivisionWithReminder(localDividend, divisor);//getting the integer part
 
-	while(temp_result[0] == '0' && temp_result[1] != '\0')// ignoring left-zeros, e.g 0390
-		temp_result++;
 	integer_part_len = strlen(temp_result);
 
 	if( strcmp(localDividend, "0") != 0 )// localDividend will be the reminder
 	{
 		for(unsigned long long decimals = 0; decimals < precision; decimals++)
 		{
+
 			strcat(result, temp_result);
 			strcat(localDividend, "0");
 
 			temp_result = longDivisionWithReminder(localDividend, divisor);
+
 		}
+		
 		strcat(result, temp_result);
 	}
 	else
 		strcpy(result, temp_result);
-	
+
 	resultLength = strlen(result);
 	memmove((result+integer_part_len+1), (result+integer_part_len), (resultLength-integer_part_len+2));
 	result[integer_part_len] = '.';
@@ -538,8 +581,9 @@ increment
 */
 char *longFloatingPointAddition(char *summand1, char *summand2)
 {
-	unsigned long long summand1Length, summand2Length, resultLength, summand1_digit_count, summand2_digit_count, total_digits;
-	char *result, *summand1_digit_buffer, *summand2_digit_buffer, *point_ptr, *decimal_result, *integer_result;
+	unsigned long long summand1Length, summand2Length, resultLength; 
+	unsigned long long summand1_digit_count, summand2_digit_count, total_digits, decimal_result_len;
+	char *result, *summand1_digit_buffer, *summand2_digit_buffer, *point_ptr, *decimal_result, *integer_result, *zeros_ptr;
 	bool carry = false; 
 	
 	//Error handling
@@ -585,33 +629,39 @@ char *longFloatingPointAddition(char *summand1, char *summand2)
 	
 	//performing a normal longAddition
 	decimal_result = longAddition(summand1_digit_buffer, summand2_digit_buffer);
+	decimal_result_len = strlen(decimal_result);
 
 	//check if there is a carry to the integer part
-	if(strlen(decimal_result) > total_digits)
+	if(decimal_result_len > total_digits)
 		carry = true;
-
-	//We clean the buffer
-	memset(summand1_digit_buffer, '\0', total_digits);
-	memset(summand2_digit_buffer, '\0', total_digits);
+	else if(decimal_result_len < total_digits)
+	{
+		decimal_result = realloc(decimal_result, (total_digits+1)*sizeof(char) );
+		zeros_ptr = strchr(decimal_result, '\0');
+		memmove((zeros_ptr-decimal_result_len), decimal_result, decimal_result_len);
+		memset(decimal_result, '0', total_digits-decimal_result_len);
+	}
 
 	//OPERATIONS FOR THE INTEGER PART:
 	summand1_digit_count = count_integer_digits(summand1);
 	summand2_digit_count = count_integer_digits(summand2);
-	
+
 	//get the greater digit count 
 	total_digits = (summand1_digit_count >= summand2_digit_count) ? summand1_digit_count : summand2_digit_count;
 	
-	//initialize two arrays of characters with the same size to add them up latter
+	//initialize two arrays of characters with the same size to add them up latter, reusing the summandx_digit_buffer pointers
 	summand1_digit_buffer = realloc(summand1_digit_buffer, (total_digits+1)*sizeof(char) );
 	summand2_digit_buffer = realloc(summand2_digit_buffer, (total_digits+1)*sizeof(char) );
 	
 	//this time we don't need to set to '0', we just copy the integer part
 	memcpy(summand1_digit_buffer, summand1, summand1_digit_count);
 	memcpy(summand2_digit_buffer, summand2, summand2_digit_count);
-	
+	summand1_digit_buffer[summand1_digit_count] = '\0';
+	summand2_digit_buffer[summand2_digit_count] = '\0';
 	//getting the sum for the integer part of each summands
+
 	integer_result = longAddition(summand1_digit_buffer, summand2_digit_buffer);
-	
+
 	//if there was a carry, we increment the integer part and then 10021 turns into -> 0021
 	if(carry)
 	{
@@ -624,9 +674,11 @@ char *longFloatingPointAddition(char *summand1, char *summand2)
 	
 	//Copyin the integer part, concatenate a point and then the decimal part.
 	total_digits = strlen(integer_result);
+	decimal_result_len = strlen(decimal_result);
+
 	memcpy(result, integer_result, total_digits);
 	strcat(result, ".");
-	memcpy((result+total_digits+1), decimal_result, strlen(decimal_result));
+	memcpy((result+total_digits+1), decimal_result, decimal_result_len );
 
 	free(decimal_result);
 	free(integer_result);
@@ -645,10 +697,10 @@ count_integer_digits
 
 */
 
-char *longFloatingPointSubtracction(char *minuend, char *subtrahend)
+char *longFloatingPointSubtraction(char *minuend, char *subtrahend)
 {
 	unsigned long long minuendLength, subtrahendLength, resultLength, minuend_digit_count; 
-	unsigned long long subtrahend_digit_count, total_decimal_digits, total_integer_digits;
+	unsigned long long subtrahend_digit_count, total_decimal_digits, total_integer_digits, decimal_result_len;
 	char *result, *minuend_digit_buffer, *subtrahend_digit_buffer, *point_ptr, *decimal_result, *integer_result;
 	bool carry = false; 
 
@@ -681,11 +733,11 @@ char *longFloatingPointSubtracction(char *minuend, char *subtrahend)
 	//get the greater digit count 
 	total_decimal_digits = (minuend_digit_count >= subtrahend_digit_count) ? minuend_digit_count : subtrahend_digit_count;
 	
-	//initialize two arrays of characters with the same size to add them up latter
+	//initialize two arrays of characters with the same size
 	minuend_digit_buffer = calloc( total_decimal_digits+1, sizeof(char) );
 	subtrahend_digit_buffer = calloc( total_decimal_digits+1, sizeof(char) );
 
-	//here: 9 + 9999 turns into -> 9000 + 9999
+	//here: 9 - 9999 turns into -> 9000 - 9999
 	memset(minuend_digit_buffer, '0', total_decimal_digits);
 	memset(subtrahend_digit_buffer, '0', total_decimal_digits);
 	minuend_digit_buffer[total_decimal_digits] = subtrahend_digit_buffer[total_decimal_digits] = '\0';
@@ -697,17 +749,14 @@ char *longFloatingPointSubtracction(char *minuend, char *subtrahend)
 	point_ptr = strchr(subtrahend, '.');
 	memcpy(subtrahend_digit_buffer, (point_ptr+1), subtrahend_digit_count);
 
-	//performing a normal longAddition
+	//performing a normal longSubtraction
 	decimal_result = longSubtraction(minuend_digit_buffer, subtrahend_digit_buffer);
+	decimal_result_len = strlen(decimal_result);
 
-	
-	//check if there is a carry to the integer part
+	//check if there is a negative carry to the integer part
 	if(strchr(decimal_result, '-') != NULL)
 		carry = true;
 
-	//We clean the buffer
-	memset(minuend_digit_buffer, '\0', total_decimal_digits);
-	memset(subtrahend_digit_buffer, '\0', total_decimal_digits);
 
 	//OPERATIONS FOR THE INTEGER PART:
 	minuend_digit_count = count_integer_digits(minuend);
@@ -716,44 +765,60 @@ char *longFloatingPointSubtracction(char *minuend, char *subtrahend)
 	//get the greater digit count 
 	total_integer_digits = (minuend_digit_count >= subtrahend_digit_count) ? minuend_digit_count : subtrahend_digit_count;
 	
-	//initialize two arrays of characters with the same size to add them up latter
+	//initialize two arrays of characters with the same size
 	minuend_digit_buffer = realloc(minuend_digit_buffer, (total_integer_digits+1)*sizeof(char) );
 	subtrahend_digit_buffer = realloc(subtrahend_digit_buffer, (total_integer_digits+1)*sizeof(char) );
 	
 	//this time we don't need to set to '0', we just copy the integer part
 	memcpy(minuend_digit_buffer, minuend, minuend_digit_count);
 	memcpy(subtrahend_digit_buffer, subtrahend, subtrahend_digit_count);
+	minuend_digit_buffer[minuend_digit_count] = subtrahend_digit_buffer[subtrahend_digit_count] = '\0';
 	
-	//getting the sum for the integer part of each summands
+	//getting the difference for the integer part
 	integer_result = longSubtraction(minuend_digit_buffer, subtrahend_digit_buffer);
-	
-	//if there was a carry, we increment the integer part and then 10021 turns into -> 0021
+
+
+	//if there was a negative carry:
 	if(carry)
 	{
-		integer_result = longSubtraction(integer_result, "1");
-		point_ptr = strchr(decimal_result, '-');
-		point_ptr[0] = '0';
-		while(decimal_result[0] == '0' && decimal_result[1] != '\0')// ignoring left-zeros, e.g 0390
-			decimal_result++;
+		//we eliminate the minus sign from the decimal part. From longSubtraction we know the sign is for sure in the first byte
+		memmove(decimal_result, decimal_result+1,  decimal_result_len );
 
-		minuend_digit_buffer = realloc(minuend_digit_buffer, (total_decimal_digits+2)*sizeof(char) );//'\0' and '1'
-		memset(minuend_digit_buffer, '0', total_decimal_digits+1);
-		minuend_digit_buffer[0] = '1';
+		if(strchr(integer_result, '-') == NULL)// if the integer_result was POSITIVE:
+		{
+			integer_result = longSubtraction(integer_result, "1"); // we subtract 1 from the integer result
 
-		decimal_result = longSubtraction(minuend_digit_buffer, decimal_result);
-		while(decimal_result[0] == '0' && decimal_result[1] != '\0')// ignoring left-zeros, e.g 0390
-			decimal_result++;
+			//we create a "unit" based on the longest decimal part, so: for .8934 - .99999 we create: 100000
+			minuend_digit_buffer = realloc(minuend_digit_buffer, (total_decimal_digits+2)*sizeof(char) );//'\0' and '1'
+			memset(minuend_digit_buffer, '0', total_decimal_digits+1);
+			minuend_digit_buffer[0] = '1';
+			minuend_digit_buffer[total_decimal_digits+1] = '\0';
 
+			// we subtract our decimal_result from the "unit"
+			decimal_result = longSubtraction(minuend_digit_buffer, decimal_result);
+			memmove(decimal_result, decimal_result+1,  decimal_result_len );//we eliminate one extra zero from the beginning
+			decimal_result_len = strlen(decimal_result); 
+		}
+
+		// if the integer_result was NEGATIVE, we just need to eliminate the minus sign and concatenate.
 	}
-
-	result = calloc(resultLength+1,sizeof(char));
-	result[resultLength] = '\0';
+	//if there was no carry, which means the decimal part resulted to be positive, we just proceed to concatenate:
+	total_integer_digits = strlen(integer_result);
+	result = calloc(total_integer_digits+decimal_result_len+2,sizeof(char));//+1 -> '\0' +1 -> '.'
+	result[resultLength+1] = '\0';
 	
 	//Copyin the integer part, concatenate a point and then the decimal part.
-	total_integer_digits = strlen(integer_result);
+
 	memcpy(result, integer_result, total_integer_digits);
 	strcat(result, ".");
-	memcpy((result+total_integer_digits+1), decimal_result, strlen(decimal_result));
+
+	memcpy((result+total_integer_digits+1), decimal_result, decimal_result_len);
+
+	//we free the memory allocated in the pointers no longer used.
+	free(minuend_digit_buffer); 
+	free(subtrahend_digit_buffer); 
+	free(decimal_result); 
+	free(integer_result);
 
 	return result;
 }
@@ -809,6 +874,20 @@ char *longFloatingPointDivision(char *dividend, char *divisor)
 
 	total_decimal_digits = dividend_digit_count >= divisor_digit_count ? dividend_digit_count : divisor_digit_count;
 
+	point_ptr = strchr(dividend_digit_buffer, '\0');
+	point_ptr--;
+	while(point_ptr[0] == '0')
+		point_ptr--;
+	point_ptr++;
+	point_ptr[0] = '\0';
+
+	point_ptr = strchr(divisor_digit_buffer, '\0');
+	point_ptr--;
+	while(point_ptr[0] == '0')
+		point_ptr--;
+	point_ptr++;
+	point_ptr[0] = '\0';
+
 	point_ptr = strchr(dividend_digit_buffer, '.');
 	memmove(point_ptr, (point_ptr+1), total_decimal_digits+1);
 	
@@ -816,6 +895,8 @@ char *longFloatingPointDivision(char *dividend, char *divisor)
 	point_ptr = strchr(divisor_digit_buffer, '.');
 	memmove(point_ptr, (point_ptr+1), total_decimal_digits+1);
 
+
+	printf("dividend_digit_buffer: %s, divisor_digit_buffer:%s\n", dividend_digit_buffer, divisor_digit_buffer);
 	result = longDivisionFloatingPointResult(dividend_digit_buffer, divisor_digit_buffer, total_decimal_digits);
 	
 	return result;
