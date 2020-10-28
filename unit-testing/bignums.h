@@ -31,10 +31,6 @@ bool isUnsignedInteger(char* number);
 bool isSignedFloat(char* number);
 bool isUnsignedFloat(char* number);
 
-unsigned long long count_decimal_digits(char *fp_number);
-unsigned long long count_integer_digits(char *fp_number);
-
-
 char *readBigNumber(char *fileName, const unsigned long long SLICELENGTH);
 char *formatNumber(char *n, int slice, char separator);
 
