@@ -421,6 +421,9 @@ char *longModule(char *dividend, char *divisor)
 		}
 	}
 
+	free(tensMultiply);
+	free(newDivisor);
+
 	return newDividend;
 }
 
@@ -514,8 +517,10 @@ char *longDivisionWithReminder(char *dividend, char *divisor)
 
 	dividend[newDividend_Length] = '\0';
 
-	strcpy(dividend, newDividend);
+	strcpy(dividend, newDividend);// newDividend will always be lower or equal in length than dividend
 
+	free(tensMultiply);
+	free(newDivisor);
 
 	return cuotient;
 }
