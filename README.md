@@ -41,7 +41,7 @@ These files are the header version of the programs described above. With the goa
 	*	Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the addition.<br><br>
 *	increment();
 	*	Recieves an string composed only by digits and increments the number that represents in one. It can handle overflow (e.g. 999+1)
-*	descrement();
+*	decrement();
 	*	Recieves an string composed only by digits and decrements the number that represents in one. It won't go lower than zero<br><br>
 *	readBigNumber();
 	*	Receives as arguments, the name of an existing file and an integer with the amount of digits to extract from the file. It returns a string with all the digits that could be read from the file until "SLICELENGTH" or EOF

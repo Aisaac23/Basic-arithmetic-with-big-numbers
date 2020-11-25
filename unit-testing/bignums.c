@@ -187,7 +187,7 @@ char* longMultiplication( char* factor1,  char* factor2)
 	if( factor1 == NULL || factor2 == NULL )
 		return NULL;
 
-	unsigned long long f1Size, f2Size, resultLength;
+	unsigned long long f1Size, f2Size, resultLength, cacheLength;
 	unsigned long long longest, shortest, resultIndex, units;
 	unsigned int product = 0, prevCarry = 0, sumCarry = 0, carry = 0;
 	char *result, *zeros_ptr;
@@ -205,56 +205,100 @@ char* longMultiplication( char* factor1,  char* factor2)
 	result = calloc( resultLength+1, sizeof(char) );
 	memset(result, '0', resultLength);
 	result[resultLength] = '\0';
-	
-	//Picking the shortest and longest number in length of characters
-	longest = f1Size >= f2Size ? f1Size : f2Size ;
-	shortest = f2Size <= f1Size ? f2Size : f1Size ;
-	units = 0;
 
-	factor1_is_greater = (f1Size >= f2Size) ? true : false;
-	/*We move from right to left in three different forms:
-		1. By the resultIndex, placing the resulting digits on their respective place.
-		2. By the shortes of the factors, multiplying each of its digits by all of the longests
-		3. By the longests of the factors*/
-	do
+	if(f1Size == f2Size)
 	{
-		shortest--;
-		resultIndex = (resultLength-1) - units;		
+		cacheLength = f2Size;
+		units = 0;
 		do
 		{
-			// we get the product of the multiplication of two factors and its carry
-			longest--;
-			if( factor1_is_greater )
-				product = (factor1[longest]-'0') * (factor2[shortest]-'0');
-			else
-				product = (factor1[shortest]-'0') * (factor2[longest]-'0');
+			f1Size--;
+			resultIndex = (resultLength-1) - units;		
+			do
+			{
+				f2Size--;
+				// we get the product of the multiplication of two factors and its carry
+				product = (factor1[f1Size]-'0') * (factor2[f2Size]-'0');
 
-			carry = (product > 9) ? product/10 : 0;
-			product -= carry*10;
+				carry = (product > 9) ? product/10 : 0;
+				product -= carry*10;
 
-			// we add the previous carry to the current product
-			product += prevCarry;
-			prevCarry = (product > 9) ? product/10 : 0;
-			product -= prevCarry*10;
-			
-			// we add the previous result to the current one
-			product += (result[resultIndex] - '0');
-			sumCarry = (product > 9) ? product/10 : 0;
-			product -= sumCarry*10;
-			
-			//We get the carry for the next operation
-			prevCarry += (carry + sumCarry); 
-			// we get the product of the multiplication of two factors and its carry
-			result[resultIndex] = (char)(product + '0');
-			resultIndex--; 
-		}while( longest >=1 );
+				// we add the previous carry to the current product
+				product += prevCarry;
+				prevCarry = (product > 9) ? product/10 : 0;
+				product -= prevCarry*10;
+				
+				// we add the previous result to the current one
+				product += (result[resultIndex] - '0');
+				sumCarry = (product > 9) ? product/10 : 0;
+				product -= sumCarry*10;
+				
+				//We get the carry for the next operation
+				prevCarry += (carry + sumCarry); 
+				// we get the product of the multiplication of two factors and its carry
+				result[resultIndex] = (char)(product + '0');
+				resultIndex--; 
+			}while( f2Size > 0 );
 
-		result[resultIndex] = (char)(prevCarry + '0');
-		prevCarry = 0;
-		units++;
+			result[resultIndex] = (char)(prevCarry + '0');
+			prevCarry = 0;
+			units++;
+			f2Size = cacheLength;
+
+		}while( f1Size > 0 );
+	}
+	else
+	{
+		//Picking the shortest and longest number in length of characters
 		longest = f1Size >= f2Size ? f1Size : f2Size ;
+		shortest = f2Size <= f1Size ? f2Size : f1Size ;
 
-	}while( shortest >= 1 );
+		cacheLength = longest;
+		factor1_is_greater = (f1Size >= f2Size) ? true : false;
+		/*We move from right to left in three different forms:
+			1. By the resultIndex, placing the resulting digits on their respective place.
+			2. By the shortes of the factors, multiplying each of its digits by all of the longests
+			3. By the longests of the factors*/
+		do
+		{
+			shortest--;
+			resultIndex = (resultLength-1) - units;		
+			do
+			{
+				// we get the product of the multiplication of two factors and its carry
+				longest--;
+				if( factor1_is_greater )
+					product = (factor1[longest]-'0') * (factor2[shortest]-'0');
+				else
+					product = (factor1[shortest]-'0') * (factor2[longest]-'0');
+
+				carry = (product > 9) ? product/10 : 0;
+				product -= carry*10;
+
+				// we add the previous carry to the current product
+				product += prevCarry;
+				prevCarry = (product > 9) ? product/10 : 0;
+				product -= prevCarry*10;
+				
+				// we add the previous result to the current one
+				product += (result[resultIndex] - '0');
+				sumCarry = (product > 9) ? product/10 : 0;
+				product -= sumCarry*10;
+				
+				//We get the carry for the next operation
+				prevCarry += (carry + sumCarry); 
+				// we get the product of the multiplication of two factors and its carry
+				result[resultIndex] = (char)(product + '0');
+				resultIndex--; 
+			}while( longest >=1 );
+
+			result[resultIndex] = (char)(prevCarry + '0');
+			prevCarry = 0;
+			units++;
+			longest = cacheLength ;
+
+		}while( shortest >= 1 );
+	}
 
 	zeros_ptr = result;
 	while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
