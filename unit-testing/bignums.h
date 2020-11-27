@@ -26,12 +26,9 @@ int compareUnsignedIntegers(char* n1, char *n2);
 void increment(char* numberPlusPlus);
 void decrement(char* numberMM);
 
-bool isSignedInteger(char* number);
 bool isUnsignedInteger(char* number);
-bool isSignedFloat(char* number);
 bool isUnsignedFloat(char* number);
 
 char *readBigNumber(char *fileName, const unsigned long long SLICELENGTH);
-char *formatNumber(char *n, int slice, char separator);
 
 #endif

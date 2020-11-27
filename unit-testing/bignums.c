@@ -1032,40 +1032,6 @@ void decrement(char* numberMM)
 	return; 
 }
 
-/*It allows you to divide a number (as string) into equally sized groups (e.g. 19,000,000,000,000). It receives the string to be formated, the size of each group and the char that will serve as separator.*/
-char* formatNumber(char *n, int slice, char separator)
-{
-	if(n == NULL || slice == 0 || separator > 127)
-		return n;
-
-	char *newNumber, sep[2];
-	unsigned long long nLength = strlen(n);
-	if(nLength > slice)
-	{
-		unsigned long long index, groups, newLength, skip;
-		
-		newLength = nLength%slice == 0 ? nLength + nLength/slice - 1 : nLength + nLength/slice;
-		groups = nLength%slice == 0 ? nLength/slice-1: nLength/slice;
-		skip = nLength%slice == 0 ? slice: nLength%slice;
-		index = 0;
-
-		newNumber = calloc( newLength+1, sizeof(char) );
-
-		strncat( newNumber, n, skip*sizeof(char) );
-		sep[0] = separator;
-		sep[1] = '\0';
-		while( index < groups )
-		{
-			strcat( newNumber, sep);
-			strncat( newNumber, n+skip+index*slice, slice*sizeof(char) );
-			index++;
-		}
-
-		return newNumber;
-	}	
-	return n;
-}
-
 //Compares two unsigned integers and returns 1 if n1 is greater, -1 if it's lower and 0 if they're equal.
 int compareUnsignedIntegers(char* n1, char *n2)
 {
@@ -1114,26 +1080,6 @@ bool isUnsignedInteger(char* number)
 	return true;
 }
 
-//Checks whether passed argument is a SIGNED integer number
-bool isSignedInteger(char* number)
-{
-	if(number == NULL)
-		return false;
-
-	int len = strlen(number);
-	bool sign;
-
- 	if(len == 0)
-		return false;
-
-	sign = ( strchr(number, '+') != NULL || strchr(number, '-') != NULL) ? true : false;
-	for( int index = 1; index < len; index++ )
-		if( !isdigit(number[index]) )
-				return false;
-	
-	return sign;
-}
-
 //First checks whether passed argument is a valid number and then checks if it's a UNSIGNED float number
 bool isUnsignedFloat(char* number)
 {
@@ -1159,30 +1105,3 @@ bool isUnsignedFloat(char* number)
 	return point;
 }
 
-//First checks whether passed argument is a valid number and then checks if it's a SIGNED float number
-bool isSignedFloat(char* number)
-{
-	if(number == NULL)
-		return false;
-
-	while(number[0] == '0' && number[1] != '\0' )
-		number++;
-
-	int len = strlen(number);
-	bool sign, point = false;
-
- 	if(len == 0)
-		return false;
- 
-	sign = ( strchr(number, '+') != NULL || strchr(number, '-') != NULL) ? true : false;
-	for( int index = 0; index < len; index++ )
-		if( !isdigit(number[index]) )
-		{
-			if( !point && number[index] == '.' && index != 0 && index != len)
-				point = true;
-			else
-				return false;
-		}
-
-	return point && sign;
-}
