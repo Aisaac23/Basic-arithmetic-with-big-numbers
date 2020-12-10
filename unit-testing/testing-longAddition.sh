@@ -9,5 +9,5 @@ echo "================= longAddition:"
 ./longAddition 98374973411213300003483749837497341121330000348374 100008888389999726372367236719837497341121330000348374
 ./longAddition 77 77
 ./longAddition 0 0
-./longAddition test-bignumber2.txt 500000 test-bignumber.txt 2000000
-./longAddition test-bignumber2.txt 50 test-bignumber.txt 200
+#./longAddition test-bignumber2.txt 500000 test-bignumber.txt 2000000
+#./longAddition test-bignumber2.txt 50 test-bignumber.txt 200

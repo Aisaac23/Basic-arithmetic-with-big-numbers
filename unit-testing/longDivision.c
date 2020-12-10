@@ -35,7 +35,12 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 	
-	printf("%s / %s = %s\n\n", number1, number2, result);
+	printf("%s / %s = %s\n", number1, number2, result);
+
+	number1 = malloc( (strlen(argv[1])+1)*sizeof(char) );
+	strcpy(number1, argv[1]);
+	longDivisionInPLace(number1, number2);
+	printf("In place: cuotient = %s, reminder: %s\n\n", number1, number2);
 
 	return EXIT_SUCCESS;
 }

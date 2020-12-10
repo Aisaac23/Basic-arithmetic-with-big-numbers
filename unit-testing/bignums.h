@@ -31,4 +31,8 @@ bool isUnsignedFloat(char* number);
 
 char *readBigNumber(char *fileName, const unsigned long long SLICELENGTH);
 
+void longAdditionInPLace( char* summand1,  char* summand2);
+void longSubtractionInPlace( char* summand1,  char* summand2);
+void longMultiplicationInplace( char* factor1,  char* factor2);
+void longDivisionInPLace(char *dividend, char *divisor);
 #endif
