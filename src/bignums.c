@@ -79,7 +79,78 @@ char* longAddition( char* summand1,  char* summand2)
 }
 
 //Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the subtraction.
+//WARNING: This function expects for the minuend to be ALWAYS greater or equal than the subtrahend otherwise behaviour is undefined.
 char *longSubtraction(char *minuend, char *subtrahend)
+{
+	/*Subtraction parts: 	9878-> minuend
+				  98-> subtrahend*/
+	unsigned long long int minuendLength, subtrahendLength, resultLength, shortest;
+	int subtraction, carry = 0;
+	char *result, *zeros_ptr;
+
+	if( minuend == NULL || subtrahend == NULL )
+		return NULL;
+
+	minuendLength = strlen(minuend); 
+	subtrahendLength = strlen(subtrahend);
+	resultLength = minuendLength;
+	
+	//Error handling
+	if( minuendLength == 0 && subtrahendLength == 0 )
+		return NULL;
+	if( subtrahendLength == 0 )
+		return minuend;
+	if( minuendLength == 0 )
+		return subtrahend;
+
+	//Initializing space for the result
+	result = calloc( resultLength + 1 , sizeof(char) );// plus one: '\0' 
+	memset(result, '0', resultLength);
+	result[resultLength] = '\0';
+
+	shortest = (subtrahendLength <= minuendLength) ? subtrahendLength : minuendLength; // get the shortest out of both
+
+	do
+	{
+		resultLength--;
+		if(shortest > 0)
+		{
+			shortest--;
+			if( resultLength <= subtrahendLength -2 && carry==-1 )// subtrahend-2 -> evaluate from the penultimate digit.
+				carry = ( minuend[resultLength] == '0') ? 9 : -1;	
+			subtraction = ( minuend[resultLength] - '0') - ( subtrahend[shortest] - '0' ) + carry;
+		}
+		else if ( resultLength >= 0 )//This is used when one of the numbers has greater length than the other.
+			subtraction = (minuend[resultLength]-'0') + carry;
+		
+		if( subtraction < 0 || carry == 9 )//if the result's negative or the carry had to be 9, then we set carry to -1 for the next digit
+		{
+			if( subtraction < 0)
+				subtraction += 10;
+			carry = -1;
+		}
+		else
+			carry = 0;		
+	
+		result[ resultLength ] = (char)( subtraction + '0' ) ;
+
+	}while(resultLength > 0);//resultLength is unsigned so it'd cause a runtime error if it gets to -1
+
+	zeros_ptr = result;
+	while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
+		zeros_ptr++;
+	
+	resultLength = strlen(zeros_ptr);
+	memmove(result, zeros_ptr, resultLength+1);
+	
+	result = realloc(result, (resultLength+1)*sizeof(char)  );
+
+	return result;
+}
+
+//Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the subtraction.
+//This function does not have any constraint for either minuend nor subtrahend; it returns a signed number if minuend < subtrahend.
+char *longSubtractionSigned(char *minuend, char *subtrahend)
 {
 	/*Subtraction parts: 	9878-> minuend
 				  98-> subtrahend*/
@@ -93,6 +164,7 @@ char *longSubtraction(char *minuend, char *subtrahend)
 
 	minuendLength = strlen(minuend); 
 	subtrahendLength = strlen(subtrahend);
+
 	resultLength = (minuendLength >= subtrahendLength) ? minuendLength : subtrahendLength;// 0 - 100 = [-]100
 	
 	//Error handling
@@ -168,12 +240,12 @@ char *longSubtraction(char *minuend, char *subtrahend)
 
 	}while(resultLength > 0);//resultLength is unsigned so it'd cause a runtime error if it gets to -1
 
-	zeros_ptr = result;
+	zeros_ptr = result+sign;
 	while(zeros_ptr[0] == '0' && zeros_ptr[1] != '\0')// ignoring left-zeros, e.g 0390
 		zeros_ptr++;
 	
 	resultLength = strlen(zeros_ptr);
-	memmove(result, zeros_ptr, resultLength+1);
+	memmove(result+sign, zeros_ptr, resultLength+1);
 	
 	result = realloc(result, (resultLength+1)*sizeof(char)  );
 
@@ -187,38 +259,38 @@ char* longMultiplication( char* factor1,  char* factor2)
 	if( factor1 == NULL || factor2 == NULL )
 		return NULL;
 
-	unsigned long long f1Size, f2Size, resultLength, cacheLength;
+	unsigned long long factor1Length, factor2Length, resultLength, cacheLength;
 	unsigned long long longest, shortest, resultIndex, units;
 	unsigned int product = 0, prevCarry = 0, sumCarry = 0, carry = 0;
 	char *result, *zeros_ptr;
 	bool factor1_is_greater; 
 	
-	f1Size = strlen(factor1);
-	f2Size = strlen(factor2);
+	factor1Length = strlen(factor1);
+	factor2Length = strlen(factor2);
 	
 	//Error handling
-	if( f1Size == 0 || f2Size == 0 )
+	if( factor1Length == 0 || factor2Length == 0 )
 		return NULL;
 	
-	resultLength = f1Size + f2Size;// 99x999=98,901 -> 2+3 = 5 digits long
+	resultLength = factor1Length + factor2Length;// 99x999=98,901 -> 2+3 = 5 digits long
 	
 	result = calloc( resultLength+1, sizeof(char) );
 	memset(result, '0', resultLength);
 	result[resultLength] = '\0';
 
-	if(f1Size == f2Size)
+	if(factor1Length == factor2Length)
 	{
-		cacheLength = f2Size;
+		cacheLength = factor2Length;
 		units = 0;
 		do
 		{
-			f1Size--;
+			factor1Length--;
 			resultIndex = (resultLength-1) - units;		
 			do
 			{
-				f2Size--;
+				factor2Length--;
 				// we get the product of the multiplication of two factors and its carry
-				product = (factor1[f1Size]-'0') * (factor2[f2Size]-'0');
+				product = (factor1[factor1Length]-'0') * (factor2[factor2Length]-'0');
 
 				carry = (product > 9) ? product/10 : 0;
 				product -= carry*10;
@@ -238,23 +310,23 @@ char* longMultiplication( char* factor1,  char* factor2)
 				// we get the product of the multiplication of two factors and its carry
 				result[resultIndex] = (char)(product + '0');
 				resultIndex--; 
-			}while( f2Size > 0 );
+			}while( factor2Length > 0 );
 
 			result[resultIndex] = (char)(prevCarry + '0');
 			prevCarry = 0;
 			units++;
-			f2Size = cacheLength;
+			factor2Length = cacheLength;
 
-		}while( f1Size > 0 );
+		}while( factor1Length > 0 );
 	}
 	else
 	{
 		//Picking the shortest and longest number in length of characters
-		longest = f1Size >= f2Size ? f1Size : f2Size ;
-		shortest = f2Size <= f1Size ? f2Size : f1Size ;
+		longest = factor1Length >= factor2Length ? factor1Length : factor2Length ;
+		shortest = factor2Length <= factor1Length ? factor2Length : factor1Length ;
 
 		cacheLength = longest;
-		factor1_is_greater = (f1Size >= f2Size) ? true : false;
+		factor1_is_greater = (factor1Length >= factor2Length) ? true : false;
 		/*We move from right to left in three different forms:
 			1. By the resultIndex, placing the resulting digits on their respective place.
 			2. By the shortes of the factors, multiplying each of its digits by all of the longests
@@ -1032,40 +1104,6 @@ void decrement(char* numberMM)
 	return; 
 }
 
-/*It allows you to divide a number (as string) into equally sized groups (e.g. 19,000,000,000,000). It receives the string to be formated, the size of each group and the char that will serve as separator.*/
-char* formatNumber(char *n, int slice, char separator)
-{
-	if(n == NULL || slice == 0 || separator > 127)
-		return n;
-
-	char *newNumber, sep[2];
-	unsigned long long nLength = strlen(n);
-	if(nLength > slice)
-	{
-		unsigned long long index, groups, newLength, skip;
-		
-		newLength = nLength%slice == 0 ? nLength + nLength/slice - 1 : nLength + nLength/slice;
-		groups = nLength%slice == 0 ? nLength/slice-1: nLength/slice;
-		skip = nLength%slice == 0 ? slice: nLength%slice;
-		index = 0;
-
-		newNumber = calloc( newLength+1, sizeof(char) );
-
-		strncat( newNumber, n, skip*sizeof(char) );
-		sep[0] = separator;
-		sep[1] = '\0';
-		while( index < groups )
-		{
-			strcat( newNumber, sep);
-			strncat( newNumber, n+skip+index*slice, slice*sizeof(char) );
-			index++;
-		}
-
-		return newNumber;
-	}	
-	return n;
-}
-
 //Compares two unsigned integers and returns 1 if n1 is greater, -1 if it's lower and 0 if they're equal.
 int compareUnsignedIntegers(char* n1, char *n2)
 {
@@ -1114,26 +1152,6 @@ bool isUnsignedInteger(char* number)
 	return true;
 }
 
-//Checks whether passed argument is a SIGNED integer number
-bool isSignedInteger(char* number)
-{
-	if(number == NULL)
-		return false;
-
-	int len = strlen(number);
-	bool sign;
-
- 	if(len == 0)
-		return false;
-
-	sign = ( strchr(number, '+') != NULL || strchr(number, '-') != NULL) ? true : false;
-	for( int index = 1; index < len; index++ )
-		if( !isdigit(number[index]) )
-				return false;
-	
-	return sign;
-}
-
 //First checks whether passed argument is a valid number and then checks if it's a UNSIGNED float number
 bool isUnsignedFloat(char* number)
 {
@@ -1159,30 +1177,3 @@ bool isUnsignedFloat(char* number)
 	return point;
 }
 
-//First checks whether passed argument is a valid number and then checks if it's a SIGNED float number
-bool isSignedFloat(char* number)
-{
-	if(number == NULL)
-		return false;
-
-	while(number[0] == '0' && number[1] != '\0' )
-		number++;
-
-	int len = strlen(number);
-	bool sign, point = false;
-
- 	if(len == 0)
-		return false;
- 
-	sign = ( strchr(number, '+') != NULL || strchr(number, '-') != NULL) ? true : false;
-	for( int index = 0; index < len; index++ )
-		if( !isdigit(number[index]) )
-		{
-			if( !point && number[index] == '.' && index != 0 && index != len)
-				point = true;
-			else
-				return false;
-		}
-
-	return point && sign;
-}

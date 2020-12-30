@@ -13,7 +13,18 @@ NOTE: for this specific function we keep the reminder, but we have to make sure 
 
 int main(int argc, char* argv[])
 {
+
+	unsigned long long len1, len2;
+	len1 = strlen(argv[1]);
+	len2 = strlen(argv[2]);
+
 	char *result = NULL, *number1 = NULL, *number2 = NULL;
+
+	char number3[len1+1], number4[len2+1];
+	strcpy(number3, argv[1]);
+	number3[len1] = '\0';
+	strcpy(number4, argv[2]);
+	number4[len2] = '\0';
 
 	if( argc == 3 )//direct input
 	{
@@ -37,6 +48,9 @@ int main(int argc, char* argv[])
 	}
 	
 	printf(" / %s = %s, reminder: %s\n\n", number2, result, number1);
+
+	longDivisionWithReminderInPlace(number3, number4);
+	printf("In place: cuotient = %s, reminder = %s \n\n", number3, number4);
 
 	return EXIT_SUCCESS;
 }

@@ -9,6 +9,7 @@
 
 char *longAddition( char* summand1,  char* summand2);
 char *longSubtraction(char minuend[], char subtrahend[]);
+char *longSubtractionSigned(char minuend[], char subtrahend[]);
 char *longMultiplication( char* factor1,  char* factor2);
 char *longDivision(char *dividend, char *divisor);
 
@@ -31,8 +32,4 @@ bool isUnsignedFloat(char* number);
 
 char *readBigNumber(char *fileName, const unsigned long long SLICELENGTH);
 
-void longAdditionInPLace( char* summand1,  char* summand2);
-void longSubtractionInPlace( char* summand1,  char* summand2);
-void longMultiplicationInplace( char* factor1,  char* factor2);
-void longDivisionInPLace(char *dividend, char *divisor);
 #endif

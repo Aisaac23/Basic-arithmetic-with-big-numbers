@@ -14,6 +14,7 @@ Examples:
 int main(int argc, char* argv[])
 {	
 	char *result = NULL, *number1 = NULL, *number2 = NULL;
+	
 
 	if( argc == 3 )//direct input
 	{
@@ -37,11 +38,6 @@ int main(int argc, char* argv[])
 	
 	printf("%s + %s = %s\n", number1, number2, result);
 	
-	number1 = malloc( (strlen(argv[1])+1)*sizeof(char) );
-	strcpy(number1, argv[1]);
-	longAdditionInPLace(number1, number2);
-	printf("In place: %s\n\n", number1);
-
 	return EXIT_SUCCESS;
 }
 
