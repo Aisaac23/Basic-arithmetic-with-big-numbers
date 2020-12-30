@@ -11,6 +11,7 @@ echo "================= longMultiplication:"
 ./longMultiplication 123 0
 ./longMultiplication 0 120987459847598745972985749357
 
+echo ""
 echo "================= For same-length multiplication (x^2) "
 
 ./longMultiplication 12 12
