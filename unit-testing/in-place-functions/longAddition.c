@@ -22,9 +22,10 @@ int main(int argc, char* argv[])
 		char number3[len1+1];
 		strcpy(number3, argv[1]);
 		number3[len1] = '\0';
-
-		longAdditionInPlace(number3, argv[2]);
-		printf("In place: %s\n\n", number3);
+		
+		printf("%s + %s ", number3, argv[2] );
+		longAdditionInPlace(number3, argv[2] );
+		printf("= %s\n\n", number3);
 	}
 	else
 	{

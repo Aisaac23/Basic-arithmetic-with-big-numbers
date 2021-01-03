@@ -13,21 +13,18 @@ Examples:
 
 int main(int argc, char* argv[])
 {	
-	char *number1 = NULL;
+	unsigned long long len1;
 
-	if( argc == 2 )//direct input
+	if( argc == 3 )//direct input
 	{
-		number1 =  calloc( strlen(argv[1])+1 , sizeof(char));
-		strcpy(number1, argv[1]);
-		printf("%s", number1 );
-		increment( number1 );
-	}
-	else if(argc == 4)//input from file
-	{
+		len1 = strlen(argv[1]);
 
-		number1 = readBigNumber(argv[1], atoi(argv[2]));
+		char number3[len1+1];
+		strcpy(number3, argv[1]);
+		number3[len1] = '\0';
 
-		increment(number1);
+		incrementInPlace(number3);
+		printf("In place: %s\n\n", number3);
 	}
 	else
 	{
@@ -35,8 +32,6 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 	
-	printf("++ = %s\n\n", number1 );
-
 	return EXIT_SUCCESS;
 }
 

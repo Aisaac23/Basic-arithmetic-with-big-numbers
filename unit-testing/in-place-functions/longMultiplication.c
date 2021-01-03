@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "bignums.h"
+#include "bignums_ip.h"
 
 /*The program receives as arguments, two unsigned integers or two file names and how many digits the program should read from each file.
 
@@ -13,21 +13,19 @@ Example:
 
 int main(int argc, char* argv[])
 {	
-	char *result = NULL, *number1 = NULL, *number2 = NULL;
+	unsigned long long len1;
 
 	if( argc == 3 )//direct input
 	{
-		number1 = argv[1];
-		number2 = argv[2];
-		result = longMultiplication( number1, number2 );
-	}
-	else if(argc == 5)//input from file
-	{
+		len1 = strlen(argv[1]);
 
-		number1 = readBigNumber(argv[1], atoi(argv[2]));
-		number2 = readBigNumber(argv[3], atoi(argv[4]));
+		char number3[len1+1];
+		strcpy(number3, argv[1]);
+		number3[len1] = '\0';
 
-		result = longMultiplication(number1, number2);
+		printf("%s * %s ", number3, argv[2] );
+		longMultiplicationInPlace(number3, argv[2]);
+		printf("= %s\n\n", number3);
 	}
 	else
 	{
@@ -35,15 +33,6 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 	
-	printf("%s * %s = %s\n", number1, number2, result);
-
-	number1 = malloc( (strlen(argv[1])+1)*sizeof(char) );
-	strcpy(number1, argv[1]);
-	longMultiplicationInPlace(number1, number2);
-	printf("In place: %s\n\n", number1);
-
-
 	return EXIT_SUCCESS;
-	
 }
 

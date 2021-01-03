@@ -50,7 +50,9 @@ You can **#include** these files in your project. Bellow you can find the name o
 
 ## bignums\_ip.c & bignums_ip.h
 
-These functions were created to work leaving the result of each arithmetic operation on the first operand, thus, replacing it. So you must be careful to pass enough space, considering, for example, whether the result could be negative (sign) or could have more digits than the first operand.  
+These functions were created to work leaving the result of each arithmetic operation on the first operand, thus, replacing it. So you must be careful to pass enough space, considering, for example, whether the result could be negative (sign) or could have more digits than the first operand.
+
+This is a work in pro  
 
 
 ### How to install

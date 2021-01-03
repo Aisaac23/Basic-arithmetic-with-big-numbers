@@ -9,6 +9,7 @@
 
 void longAdditionInPlace( char* summand1,  char* summand2);
 void longSubtractionInPlace( char* summand1,  char* summand2);
+void longSubtractionInPlaceSigned( char* summand1,  char* summand2);
 void longMultiplicationInPlace( char* factor1,  char* factor2);
 void longDivisionInPlace(char *dividend, char *divisor);
 void longDivisionWithReminderInPlace(char *dividend, char *divisor);

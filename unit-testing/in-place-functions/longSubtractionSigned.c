@@ -13,19 +13,25 @@ Examples:
 
 int main(int argc, char* argv[])
 {
-	unsigned long long len1;
+	unsigned long long len1, len2;
 
 	if( argc == 3 )//direct input
 	{
 		len1 = strlen(argv[1]);
+		len2 = strlen(argv[2]);
 
-		char number3[len1+1];
+		char number3[len1+1], number4[len2+1];
 		strcpy(number3, argv[1]);
+		strcpy(number4, argv[2]);
 		number3[len1] = '\0';
+		number4[len2] = '\0';
 
-		printf("%s - %s ", number3, argv[2] );
-		longSubtractionInPlace(number3, argv[2]);
-		printf("= %s\n\n", number3);
+		printf("%s - %s ", number3, number4 );
+		longSubtractionInPlaceSigned(number3, number4);
+		if(len1 > len2)
+			printf("= %s\n\n", number3);
+		else
+			printf("= %s\n\n", number4);
 	}
 	else
 	{

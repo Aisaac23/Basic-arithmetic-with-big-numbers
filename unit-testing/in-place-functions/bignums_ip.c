@@ -64,11 +64,77 @@ void longSubtractionInPlace(char *minuend, char *subtrahend)
 	/*Subtraction parts: 	9878-> minuend
 				  98-> subtrahend*/
 	unsigned long long int minuendLength, subtrahendLength, resultLength, shortest;
+	int subtraction, carry = 0;
+
+	if( minuend == NULL || subtrahend == NULL )
+		return;
+
+	minuendLength = strlen(minuend); 
+	subtrahendLength = strlen(subtrahend);
+	resultLength = minuendLength;
+	
+	//Error handling
+	if( minuendLength == 0 && subtrahendLength == 0 )
+		return ;
+	if( subtrahendLength == 0 || minuendLength == 0)
+		return ;
+	
+
+	//Initializing space for the result
+	char result[resultLength+1];
+	result[resultLength] = '\0';
+
+	shortest = subtrahendLength;
+
+	do
+	{
+		resultLength--;
+		if(shortest > 0)
+		{
+			shortest--;
+			if( resultLength <= subtrahendLength -2 && carry==-1 )// subtrahend-2 -> evaluate from the penultimate digit.
+				carry = ( minuend[resultLength] == '0') ? 9 : -1;	
+			subtraction = ( minuend[resultLength] - '0') - ( subtrahend[shortest] - '0' ) + carry;
+		}
+		else if ( resultLength >= 0 )//This is used when one of the numbers has greater length than the other.
+		{
+			subtraction = (minuend[resultLength]-'0') + carry;
+		}
+		
+		if( subtraction < 0 || carry == 9 )//if the result was negative or the carry had to be 9, then we set carry to -1 for the next digit
+		{
+			if( subtraction < 0)
+				subtraction += 10;
+			carry = -1;
+		}
+		else
+			carry = 0;		
+	
+		result[ resultLength ] = (char)( subtraction + '0' ) ;// starting one extra byte to the right of we have sign
+
+	}while(resultLength > 0);//resultLength is unsigned so it'd cause a runtime error if it gets to -1
+	
+	resultLength = strlen(result);
+	
+	memset(minuend, '0', resultLength);
+	strcpy(minuend, result);
+	minuend[resultLength] = '\0';
+
+	return;
+}
+
+//Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the subtraction.
+void longSubtractionInPlaceSigned(char *minuend, char *subtrahend)
+{
+	/*Subtraction parts: 	9878-> minuend
+				  98-> subtrahend*/
+	unsigned long long int minuendLength, subtrahendLength, resultLength, shortest;
 	int subtraction, carry = 0, sign = 0;
 
 	bool minuendIsLower = true;
 
 	if( minuend == NULL || subtrahend == NULL )
+
 		return;
 
 	minuendLength = strlen(minuend); 
@@ -104,8 +170,6 @@ void longSubtractionInPlace(char *minuend, char *subtrahend)
 		result[0] = '-';
 	shortest = (subtrahendLength <= minuendLength) ? subtrahendLength : minuendLength; // get the shortest out of both
 
-	if( minuendIsLower && subtrahend[0] != '0' )
-		return ;
 	do
 	{
 		resultLength--;
@@ -146,7 +210,7 @@ void longSubtractionInPlace(char *minuend, char *subtrahend)
 		result[ resultLength+sign ] = (char)( subtraction + '0' ) ;// starting one extra byte to the right of we have sign
 
 	}while(resultLength > 0);//resultLength is unsigned so it'd cause a runtime error if it gets to -1
-	
+
 	resultLength = strlen(result);
 	if(minuendIsLower)
 	{
@@ -163,6 +227,7 @@ void longSubtractionInPlace(char *minuend, char *subtrahend)
 
 	return;
 }
+
 
 //Receives as arguments, two unsigned integers (as strings) and returns a string with the result of the multiplication.
 void longMultiplicationInPlace( char* factor1,  char* factor2)
